@@ -1013,7 +1013,11 @@
           <label class="form-label">Recipe Name</label>
           <input class="form-input" id="f_name" type="text" placeholder="Rosewater Cupcakes…">
         </div>
-        <div>
+		<div class="form-full">
+  <label class="form-label">EMOJI</label>
+  <input id="f_emoji" class="form-input" placeholder="e.g. 🍰 🍗 🍝 🥗" />
+</div>
+ <div>
           <label class="form-label">Category</label>
           <input class="form-input" id="f_cat" type="text" placeholder="Dessert, Chicken, Beef…">
         </div>
@@ -1275,16 +1279,28 @@ function closeSidebarIfMobile() {
 
 /* Returns ['All', ...sorted unique categories] */
 function getCategories() {
-  return ['All', ...[...new Set(recipes.map(r => r.cat))].sort()];
+  return [
+    'All',
+    ...[...new Set(recipes.flatMap(r => r.cat || []))].sort()
+  ];
 }
-
 /* Returns recipes matching the current search term and category filter */
 function getFiltered() {
   const term = document.getElementById('search').value.toLowerCase();
-  return recipes.filter(r =>
-    (activeFilter === 'All' || r.cat === activeFilter) &&
-    (!term || r.name.toLowerCase().includes(term) || r.cat.toLowerCase().includes(term))
-  );
+
+  return recipes.filter(r => {
+    const cats = Array.isArray(r.cat) ? r.cat : [r.cat];
+
+    const matchesCategory =
+      activeFilter === 'All' || cats.includes(activeFilter);
+
+    const matchesSearch =
+      !term ||
+      r.name.toLowerCase().includes(term) ||
+      cats.some(c => c.toLowerCase().includes(term));
+
+    return matchesCategory && matchesSearch;
+  });
 }
 
 /* Renders the category pill buttons above the recipe list */
@@ -1317,10 +1333,12 @@ function renderList() {
     div.draggable = true;
     div.dataset.index = i;
     div.innerHTML = `
-      <div class="item-icon">${icon(r.cat)}</div>
+<div class="item-icon">${r.emoji || icon(r.cat)}</div>
       <div class="item-text">
         <div class="item-name">${r.name}</div>
-        <div class="item-cat">${r.cat}</div>
+<div class="item-cat">
+  ${(Array.isArray(r.cat) ? r.cat : [r.cat]).join(' • ')}
+</div>
       </div>`;
 
     div.onclick = () => { showDetail(i); closeSidebarIfMobile(); };
@@ -1457,7 +1475,7 @@ function tryByName(r, hero) {
   function tryNext() {
     if (c >= candidates.length) {
       hero.style.backgroundImage = '';
-      hero.textContent = icon(r.cat);
+      hero.textContent = r.emoji || icon(r.cat);
       return;
     }
 
@@ -1567,7 +1585,8 @@ function showDetail(i) {
   const r = recipes[i];
   hide('welcome'); hide('formView'); show('detailView');
 
-  document.getElementById('detCat').textContent   = r.cat;
+document.getElementById('detCat').textContent =
+  (Array.isArray(r.cat) ? r.cat : [r.cat]).join(' • ');
   document.getElementById('detTitle').textContent = r.name;
 
   /* Set hero image (tries file first, then emoji fallback) */
@@ -1614,9 +1633,11 @@ function editRecipe(i) {
   document.getElementById('formTitle').innerHTML      = 'Edit <em>Recipe</em>';
   document.getElementById('formSubtitle').textContent = 'Make changes and save.';
   document.getElementById('f_name').value  = r.name;
-  document.getElementById('f_cat').value   = r.cat;
+document.getElementById('f_cat').value =
+  Array.isArray(r.cat) ? r.cat.join(', ') : r.cat;
   document.getElementById('f_ing').value   = r.ing;
   document.getElementById('f_steps').value = r.steps;
+  document.getElementById('f_emoji').value = r.emoji || '';
   /* Image field */
   const imgInp = document.getElementById('f_img');
 imgInp.value = r.img && r.img.startsWith('images/') ? r.img : '';
@@ -1631,13 +1652,18 @@ if (r.img && r.img.trim() && r.img.startsWith('images/')) {
 /* Save new or edited recipe */
 function saveRecipe() {
   const imgInp = document.getElementById('f_img');
-  const r = {
-    name:  document.getElementById('f_name').value.trim(),
-    cat:   document.getElementById('f_cat').value.trim() || 'Other',
-    img:   imgInp.value.trim(),
-    ing:   document.getElementById('f_ing').value,
-    steps: document.getElementById('f_steps').value
-  };
+const r = {
+  name:  document.getElementById('f_name').value.trim(),
+  cat: document.getElementById('f_cat').value
+    .split(',')
+    .map(c => c.trim())
+    .filter(Boolean)
+    || ['Other'],
+  img:   imgInp.value.trim(),
+  ing:   document.getElementById('f_ing').value,
+  steps: document.getElementById('f_steps').value,
+  emoji: document.getElementById('f_emoji')?.value || ''
+};
   if (!r.name) { showToast('Please give your recipe a name.', 'error'); return; }
   if (editIdx !== null) {
     recipes[editIdx] = r;
