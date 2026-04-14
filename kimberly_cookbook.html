@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kimberly's Cookbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Satisfy&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1c1208;
+      --paper: #faf6f0;
+      --cream: #f4ede0;
+      --rust: #b5451b;
+      --rust-light: #e8856a;
+      --terracotta: #c96a3a;
+      --sage: #6b8068;
+      --gold: #c8922a;
+      --warm-gray: #8a7f74;
+      --border: #e0d4c3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Jost', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+    .app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 300px; min-width: 300px;
+      background: var(--ink);
+      display: flex; flex-direction: column;
+      height: 100vh; position: relative; overflow: hidden;
+    }
+    .sidebar::before {
+      content: ''; position: absolute;
+      top: -80px; right: -80px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(181,69,27,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .sidebar-header { padding: 32px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .logo-script { font-family: 'Satisfy', cursive; font-size: 2.2rem; color: #fff; line-height: 1; }
+    .logo-sub { font-size: 0.62rem; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: var(--rust-light); margin-top: 6px; }
+
+    .search-wrap { padding: 16px 16px 8px; position: relative; }
+    .search-wrap svg { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); opacity: 0.35; pointer-events: none; }
+    .search-input {
+      width: 100%; padding: 10px 14px 10px 38px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 9px; color: #fff; font-family: 'Jost', sans-serif;
+      font-size: 0.82rem; font-weight: 300; outline: none; transition: border-color 0.2s;
+    }
+    .search-input::placeholder { color: rgba(255,255,255,0.28); }
+    .search-input:focus { border-color: rgba(181,69,27,0.5); }
+
+    .cats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px 12px;
+  text-align: center;
+}
+    .cat-pill {
+      font-size: 0.6rem; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; background: rgba(244, 237, 224, 0.22);
+      padding: 3px 9px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.13);
+      color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.18s; white-space: nowrap; display: inline-flex;
+align-items: center;
+    }
+    .cat-pill:hover, .cat-pill.active { background: var(--rust); border-color: var(--rust); color: #fff; }
+
+    .recipe-count { padding: 0 16px 6px; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.22); font-weight: 300; }
+
+    .recipe-list { flex: 1; overflow-y: auto; padding: 4px 10px 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+    .recipe-list::-webkit-scrollbar { width: 3px; }
+    .recipe-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+    .recipe-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 11px; border-radius: 9px; cursor: pointer;
+      transition: all 0.18s; border: 1px solid transparent; margin-bottom: 2px;
+    }
+    .recipe-item:hover { background: rgba(255,255,255,0.06); }
+    .recipe-item.active { background: rgba(181,69,27,0.14); border-color: rgba(181,69,27,0.28); }
+
+    .item-icon { width: 34px; height: 34px; border-radius: 7px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .item-text { flex: 1; min-width: 0; }
+    .item-name { font-size: 0.8rem; font-weight: 400; color: rgba(255,255,255,0.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .item-cat { font-size: 0.62rem; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-top: 1px; }
+
+    .sidebar-footer { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .btn-new {
+      width: 100%; padding: 11px; background: var(--rust); color: #fff; border: none;
+      border-radius: 9px; font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .btn-new:hover { background: #c94f20; }
+
+    /* MAIN */
+    .main { flex: 1; overflow-y: auto; background: var(--paper); position: relative; }
+    .main::-webkit-scrollbar { width: 5px; }
+    .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* WELCOME */
+    .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 60px 40px; }
+    .welcome-ornament { font-size: 3.5rem; margin-bottom: 20px; opacity: 0.45; }
+    .welcome h2 { font-family: 'Cormorant Garamond', serif; font-size: 3.2rem; font-weight: 300; color: var(--ink); line-height: 1.1; }
+    .welcome h2 em { font-style: italic; color: var(--rust); }
+    .welcome p { margin-top: 14px; color: var(--warm-gray); font-size: 0.88rem; font-weight: 300; }
+    .welcome-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; max-width: 500px; width: 100%; }
+    .welcome-stat { background: var(--cream); border-radius: 12px; padding: 18px 14px; border: 1px solid var(--border); }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 600; color: var(--rust); line-height: 1; }
+    .stat-label { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--warm-gray); margin-top: 4px; }
+
+    /* DETAIL */
+    .detail-hero { height: 260px; background: var(--cream); position: relative; overflow: hidden; }
+    .detail-hero-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #1c1208 0%, #3d2510 50%, #b5451b 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5.5rem;
+    }
+    .detail-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(28,18,8,0.68) 0%, transparent 55%); }
+    .detail-hero-content {
+      position: absolute; bottom: 24px; left: 36px; right: 36px;
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+    }
+    .detail-cat-badge { display: inline-block; padding: 3px 11px; background: var(--rust); color: #fff; border-radius: 20px; font-size: 0.62rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; }
+    .detail-title { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; color: #fff; line-height: 1.1; text-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+    .detail-actions { display: flex; gap: 7px; flex-shrink: 0; }
+    .action-btn {
+      padding: 8px 16px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); color: #fff;
+      font-family: 'Jost', sans-serif; font-size: 0.7rem; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .action-btn:hover { background: rgba(255,255,255,0.18); }
+    .action-btn.danger:hover { background: rgba(220,60,60,0.3); }
+
+    .detail-body { display: grid; grid-template-columns: 1fr 1.4fr; }
+    .detail-ingredients { padding: 32px 28px 44px 36px; border-right: 1px solid var(--border); background: var(--cream); }
+    .detail-method { padding: 32px 36px 44px 28px; background: var(--paper); }
+
+    .section-label {
+      font-size: 0.58rem; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--rust); margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.detail-hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #1c1208 0%, #3d2510 50%, #b5451b 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 5.5rem;
+    background-size: cover;
+  background-position: center;
+}
+    .ingredients-text { font-family: 'Cormorant Garamond', serif; font-size: 0.98rem; font-weight: 400; line-height: 2; color: var(--ink); white-space: pre-wrap; }
+
+    .step { display: flex; gap: 14px; margin-bottom: 22px; }
+    .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+    .step-text { font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; line-height: 1.75; color: #3a2c1c; font-weight: 300; }
+    .raw-steps { font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; line-height: 1.9; color: #3a2c1c; font-weight: 300; white-space: pre-wrap; }
+
+    /* FORM */
+    .form-view { padding: 44px 48px; max-width: 860px; }
+    .form-title { font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; font-weight: 300; color: var(--ink); margin-bottom: 6px; }
+    .form-title em { font-style: italic; color: var(--rust); }
+    .form-subtitle { color: var(--warm-gray); font-size: 0.83rem; font-weight: 300; margin-bottom: 36px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    .form-label { display: block; font-size: 0.6rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--warm-gray); margin-bottom: 7px; }
+    .form-input, .form-textarea {
+      width: 100%; padding: 12px 15px; background: var(--cream); border: 1px solid var(--border);
+      border-radius: 9px; font-family: 'Cormorant Garamond', serif; font-size: 0.98rem;
+      color: var(--ink); outline: none; transition: border-color 0.18s; resize: vertical;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: var(--rust); }
+    .form-textarea { min-height: 200px; line-height: 1.7; }
+    .form-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    .form-full { margin-bottom: 18px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
+    .btn-save {
+      padding: 13px 32px; background: var(--ink); color: #fff; border: none; border-radius: 9px;
+      font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+    }
+    .btn-save:hover { background: var(--rust); }
+    .btn-cancel {
+      padding: 13px 22px; background: transparent; color: var(--warm-gray); border: 1px solid var(--border);
+      border-radius: 9px; font-family: 'Jost', sans-serif; font-size: 0.75rem; cursor: pointer; transition: all 0.18s;
+    }
+    .btn-cancel:hover { border-color: var(--ink); color: var(--ink); }
+
+    .hidden { display: none !important; }
+
+    .detail { animation: slideIn 0.28s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 860px) {
+      .detail-body { grid-template-columns: 1fr; }
+      .detail-ingredients { border-right: none; border-bottom: 1px solid var(--border); }
+      .form-two-col, .form-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .sidebar { width: 100%; min-width: 0; height: 50vh; }
+      .app { flex-direction: column; }
+      .form-view { padding: 24px 18px; }
+    }
+    @media print {
+      .sidebar, .detail-actions { display: none; }
+      .main { overflow: visible; }
+      .detail-body { grid-template-columns: 1fr 1fr; }
+    }
+	.welcome-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 28px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.action-card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--rust);
+}
+
+.action-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.action-sub {
+  font-size: 0.7rem;
+  color: var(--warm-gray);
+  margin-top: 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-script" onclick="goHome()" style="cursor:pointer;">Kimberly's</div>
+      <div class="logo-sub">Botanical Cookbook</div>
+    </div>
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" id="search" placeholder="Search recipes…" oninput="renderList()">
+    </div>
+    <div class="cats" id="catFilters"></div>
+    <div class="recipe-count" id="recipeCount"></div>
+    <div class="recipe-list" id="recipeList"></div>
+    <div class="sidebar-footer">
+     <div class="sidebar-footer">
+  <button class="btn-new" onclick="showAdd()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    New Recipe
+  </button>
+
+  <button class="btn-new" style="margin-top:8px; background: var(--terracotta);" onclick="sortRecipesAZ()">
+    ⇅ Sort A → Z
+  </button>
+</div>
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Recipe
+      </button>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="welcome" id="welcome">
+      <div class="welcome-ornament">🌿</div>
+      <h2>Hello, <em>Kimberly</em></h2>
+      <p>Your personal garden of flavours — select a recipe to begin.</p>
+<div class="welcome-grid" id="welcomeStats"></div>
+<div class="welcome-actions" id="welcomeActions"></div>
+    </div>
+
+    <div class="detail hidden" id="detailView">
+      <div class="detail-hero">
+        <div class="detail-hero-bg" id="heroEmoji">🍽️</div>
+        <div class="detail-hero-overlay"></div>
+        <div class="detail-hero-content">
+          <div>
+            <div class="detail-cat-badge" id="detCat"></div>
+            <div class="detail-title" id="detTitle"></div>
+          </div>
+          <div class="detail-actions">
+            <button class="action-btn" onclick="window.print()">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Print
+            </button>
+            <button class="action-btn" id="btnEdit">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+            <button class="action-btn danger" id="btnDelete">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-ingredients">
+          <div class="section-label">Ingredients</div>
+          <div class="ingredients-text" id="detIng"></div>
+        </div>
+        <div class="detail-method">
+          <div class="section-label">Method</div>
+          <div id="detSteps"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-view hidden" id="formView">
+      <div class="form-title" id="formTitle">New <em>Creation</em></div>
+      <p class="form-subtitle">Add a new recipe to your collection.</p>
+      <div class="form-grid">
+        <div><label class="form-label">Recipe Name</label><input class="form-input" id="f_name" type="text" placeholder="Rosewater Cupcakes…"></div>
+        <div><label class="form-label">Category</label><input class="form-input" id="f_cat" type="text" placeholder="Dessert, Chicken, Beef…"></div>
+      </div>
+      <div class="form-full"><label class="form-label">Image URL (optional)</label><div class="form-full">
+  <label class="form-label">Image</label>
+
+  <input class="form-input" id="f_img" type="text" placeholder="Image URL or selected image">
+
+  <button type="button" id="imgBtn" class="btn-cancel" style="margin-top:8px;">
+    Choose Image
+  </button>
+
+  <input type="file" id="f_img_file" accept="image/*" style="display:none;">
+</div></div>
+      <div class="form-two-col">
+        <div><label class="form-label">Ingredients</label><textarea class="form-textarea" id="f_ing" placeholder="One ingredient per line…"></textarea></div>
+        <div><label class="form-label">Method / Steps</label><textarea class="form-textarea" id="f_steps" placeholder="Step-by-step instructions…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" onclick="saveRecipe()">Save Recipe</button>
+        <button class="btn-cancel" onclick="hideForm()">Cancel</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const ICONS = {
+  'Cakes':'🎂','Breads':'🍞','Chicken':'🍗','Beef':'🥩','Pork':'🐷',
+  'Turkey':'🦃','Pasta':'🍝','Rice':'🍚','Cookies':'🍪','Pie':'🥧',
+  'Meatballs':'🍖','Pancakes':'🥞','Christmas':'🎄','Fries':'🍟',
+  'Chili':'🌶️','Potatoes':'🥔','Hot Dogs':'🌭','Imported':'📋',
+  'default':'🍽️'
+};
+
+function icon(cat){ return ICONS[cat]||ICONS.default; }
+
+let recipes = [
+{name:"Chocolate Cake",cat:"Cakes",img:"",ing:"CHOCOLATE CAKE\n(1 cake)\nCake:\n1 Cup Flour\n1 Cup Granulated Sugar\n1/2 Cup Unsweetened Cocoa Powder\n3/4 tsp. Baking Powder\n3/4 tsp. Baking Soda\n1/2 tsp. Salt\n1 Egg\n1/2 Cup Milk\n1/4 Cup Vegetable Oil\n2 tsp. Vanilla Extract\n1/2 Cup Warm Water\n\nFrosting:\n1/2 Cup Milk Chocolate Chips\n1/4 Cup Sour Cream\n1/4 tsp. Vanilla Extract",steps:"1.\nPreheat oven to 350F. Grease or line a glass casserole dish with parchment paper.\n2.\nAdd flour, sugar, cocoa powder, baking powder, baking soda and salt to stand mixer bowl and whisk at low speed.\n3.\nAdd in the egg, milk, oil and vanilla extract. Mix on low until incorporated, then increase speed and mix 2 minutes.\n4.\nAdd warm water and gently stir. The batter will be very thin.\n5.\nPour into the casserole dish and bake 35-40 minutes, or until a toothpick comes out clean.\n6.\nCool 10 minutes in pan, then remove and continue cooling on a rack until room temperature.\nFrosting: Heat chocolate chips in the microwave at 50% power in 30 second increments, stirring after each, until fully melted. Add sour cream and vanilla and stir until fluffy. Spread over cooled cake."},
+{name:"Banana Bread",cat:"Breads",img:"",ing:"BANANA BREAD (1 loaf)\n2 Cups Flour\n1 tsp. Baking Soda\n1/4 tsp. Salt\n1/2 tsp. Cinnamon\n1 Egg\n1-1/8 Cups Sugar\n1/2 Cup Vegetable Oil\n2 Tbsp. Buttermilk*\n1 tsp. Vanilla Extract\n3 extra ripe Bananas, mashed\n\n*If no buttermilk: mix 1-3/4 Tbsp milk with 1/4 Tbsp lemon juice",steps:"1.\nPreheat oven to 325F. Line a loaf pan with parchment paper.\n2.\nIn a large bowl, whisk together flour, baking soda, salt and cinnamon.\n3.\nIn a small bowl, mix egg, sugar and vegetable oil until combined.\n4.\nMix the flour mixture and egg mixture together. It will be dry and thick.\n5.\nAdd buttermilk, vanilla and bananas and mix until combined. Pour into loaf pan.\n6.\nBake on the center rack for 75-80 minutes or until a knife comes out clean."},
+{name:"Chicken & Potatoes, Dijon Gravy",cat:"Chicken",img:"",ing:"CHICKEN & POTATOES WITH DIJON CREAM SAUCE (2 servings)\n1 Large boneless, skinless Chicken Breast, cut into strips\n2 tsp. Italian Seasoning\n2 Medium Potatoes, peeled and chopped into 1-inch cubes\nSalt and Pepper, to taste\n1 Tbsp. Margarine\n1 Tbsp. Extra Virgin Olive Oil (EVOO)\n\nDijon Cream Sauce:\n1 Tbsp. Margarine\n1 Clove Garlic, minced\n1/2 tsp. Dry Chicken Stock Mix\n1/2 Cup Water\n2 Tbsp. Dijon Mustard\n1/2 Cup Heavy Cream\nSalt and Pepper, to taste",steps:"1.\nPreheat oven to 375F.\n2.\nMake Chicken Stock: Boil 1/2 cup water, add 1/2 tsp. chicken stock powder, mix well.\n3.\nToss potatoes with 1 tsp. Italian seasoning, 1/2 Tbsp. EVOO, salt and pepper.\n4.\nMelt margarine in wok pan over heat 4. Add potatoes and cook 6 minutes, stirring occasionally until slightly browned. Transfer to casserole dish.\n5.\nBrush chicken with remaining Italian seasoning, salt, pepper and EVOO. Sear in same pan, 2 minutes each side. Transfer to casserole dish with potatoes.\n6.\nIn same pan, melt 1 Tbsp margarine. Add garlic, cook 30 seconds. Stir in chicken stock and Dijon mustard. Slowly whisk in heavy cream and season.\n7.\nPour sauce over chicken and potatoes, toss well.\n8.\nBake 25 minutes until chicken is cooked through and potatoes are soft."},
+{name:"Chicken Quesadillas",cat:"Chicken",img:"",ing:"CHICKEN QUESADILLAS (2 quesadillas)\n1 small boneless, skinless Chicken Breast, diced small\n1 tsp. Chili Powder\n1/2 tsp. Ground Cumin\nSalt and Pepper, to taste\n4 tsp. Extra Virgin Olive Oil (EVOO), divided\n1/2 Green Pepper, finely diced\n1/2 Red Pepper, finely diced\n1 small Onion, finely diced\n2 Garlic Cloves, minced\n1 tsp. Lime Juice\n2, 10-inch Flour Tortillas\n1 Tbsp. Margarine, melted\n1 cup Cheddar Cheese, shredded",steps:"1.\nToss chicken with chili powder, cumin, salt and pepper.\n2.\nHeat 2 tsp. EVOO in wok pan over heat 4. Cook chicken 5-6 minutes until cooked through. Transfer to a large container.\n3.\nIn same pan, heat 2 tsp. EVOO. Add green pepper, red pepper, onions and garlic and cook until tender (5-6 minutes). Transfer to container with chicken. Add lime juice and mix well.\n4.\nWipe pan clean. Brush tortillas with melted margarine. Place one tortilla margarine-side down. Sprinkle cheese, then add half the chicken mixture. Fold in half and cook 4-5 minutes until cheese is melted. Flip and cook another 4-5 minutes.\n5.\nRepeat for second tortilla."},
+{name:"Chocolate Chip Cookies",cat:"Cookies",img:"",ing:"CHOCOLATE CHIP COOKIES (about 28 cookies)\n2-1/4 Cups All-Purpose Flour\n1 tsp. Baking Soda\n1/2 tsp. Salt\n1 Cup Unsalted Butter\n3/4 Cup Granulated Sugar\n3/4 Cup Light Brown Sugar\n1 tsp. Vanilla Extract\n2 Eggs\n2-1/4 Cups Semi-Sweet Chocolate Chips",steps:"1.\nPreheat oven to 375F.\n2.\nIn one bowl, stir together flour, baking soda and salt.\n3.\nIn another bowl, beat butter, both sugars and vanilla until creamy. Add eggs and beat well. Gradually add flour mixture and beat. Stir in chocolate chips with a spatula.\n4.\nUsing an ice cream scoop, drop cookie dough onto parchment-lined cookie sheet, keeping 1 inch apart.\n5.\nBake 10 minutes or until lightly browned. Cool slightly, then transfer to a cooling rack."},
+{name:"Dad's Christmas Stuffing",cat:"Christmas",img:"",ing:"KIMBERLY'S TAKE ON DAD'S CHRISTMAS STUFFING (4-6 servings)\n8 Medium-sized Potatoes, peeled\n2 Medium-sized Onions, diced\n6 Slices White Bread, broken up into small pieces\n4-6 tsp. Ground Sage (adjust for taste)\n4-6 tsp. Ground Savory (adjust for taste)\nSalt & Pepper, to taste\nWater or Turkey Broth (to moisten)",steps:"1.\nBoil potatoes in salted water until fork-soft (10-15 min). Drain and mash. Let cool about 30 minutes.\n2.\nBreak up bread into small pieces, adding sage and savory as you go (about 1/2 tsp each per 2 slices). Reserve some seasonings for the potatoes.\n3.\nCombine cooled potatoes with onions and seasoned bread in a large casserole dish. Mix well.\n4.\nAdd remaining sage, savory, salt and pepper to taste. Combine well.\n5.\nCook in the microwave 7 minutes at a time, stirring and adding 1 Tbsp water or turkey broth after each interval. Total time: about 28 minutes.\n\nAlternatively: bake at 350F for 60 minutes, stirring and adding liquid every 10 minutes."},
+{name:"Cream Cheese Frosting",cat:"Cakes",img:"",ing:"CREAM CHEESE FROSTING\n1 package (8 oz) Cream Cheese, softened\n1/2 Cup Butter or Margarine, room temperature\n2 tsp. Vanilla Extract\n5 Cups Icing Sugar",steps:"1.\nIn stand mixer with paddle attachment, mix cream cheese, butter and vanilla until light and fluffy.\n2.\nGradually beat in icing sugar until you reach spreading consistency."},
+{name:"Tomato Juice Cake",cat:"Cakes",img:"",ing:"TOMATO JUICE CAKE (1 cake)\n1/2 Cup Tenderflake Shortening\n2 Cups Sugar\n2 tsp. Cinnamon\n2 tsp. Ground Cloves\n1 Can (19 oz) Tomato Juice\n2 tsp. Baking Soda\n3 Cups Flour\n1-1/2 Cups Raisins",steps:"1.\nPreheat oven to 350F. Grease a bundt pan.\n2.\nIn stand mixer with paddle attachment, combine shortening, sugar, cinnamon and cloves. Mix in tomato juice and baking soda. Add flour. Mix in raisins.\n3.\nPour into greased bundt pan. Bake 1 hour or until toothpick comes out clean.\n4.\nCool the cake and top with cream cheese frosting."},
+{name:"Chili Cheese Fries",cat:"Fries",img:"",ing:"CHILI CHEESE FRIES (2 servings)\nChili: 1 lb. Lean Ground Beef, 1 Small Onion diced, 2 Cloves Garlic minced, 1 tsp. Chili Powder, 1 tsp. Ground Cumin, 1 Tbsp. Tomato Paste, 1/2 Tbsp. Worcestershire Sauce, Beef Stock (1/4 tsp powder + 1/4 cup water), Salt and Pepper\n\nFries: 2 medium potatoes cut into fries, 1 Tbsp. Grill Seasoning, 1 Tbsp. Extra Virgin Olive Oil (EVOO)\n\nCheese Sauce: 1 Tbsp. Margarine, 1 Tbsp. Flour, 1 tsp. Mustard, Chicken Stock (1/4 tsp powder + 1/4 cup water), 1/4 cup Milk, 1-1/4 Cup Cheddar Cheese shredded",steps:"1.\nMake Beef Stock and Chicken Stock separately.\n2.\nAdd potatoes to deep fryer with grill seasoning and EVOO. Cook 35-40 minutes.\n3.\nBrown ground beef in a large pan over heat 6. Add onions, garlic, chili powder and cumin. Cook until onions are soft, season with salt and pepper.\n4.\nAdd tomato paste, mix and cook 2 minutes. Add Worcestershire sauce and beef stock. Bring to a bubble, reduce to heat 3, simmer until thickened (10 minutes).\n5.\nFor cheese sauce: Melt margarine in small pot, add flour and whisk making a roux. Add chicken stock and milk, let thicken. Add mustard. Remove from heat, mix in cheese until melted.\n6.\nTop fries with chili mixture, then drizzle with cheese sauce."},
+{name:"Beef Stroganoff",cat:"Beef",img:"",ing:"BEEF STROGANOFF (4 servings)\n2 Tbsp. Margarine\n1 small Onion, diced\n1 lb. Lean Ground Beef\n2 tsp. Garlic Powder\n5 Tbsp. Flour\n1 tsp. Paprika\n4 Cups Beef Stock (4 tsp powder + 4 cups water)\nSalt and Pepper, to taste\n4 Cups Egg Noodles\n1/2 Cup Sour Cream",steps:"1.\nMake Beef Stock: Boil 4 cups water, add 4 tsp. beef stock powder, mix well.\n2.\nHeat large pan over heat 6. Add margarine, onion, ground beef and garlic powder. Break up meat and cook until browned. Drain if needed.\n3.\nAdd flour and paprika. Stir until thickened (2-3 min).\n4.\nAdd beef stock, bring to a boil.\n5.\nAdd egg noodles, salt and pepper. Reduce to heat 3, cover and simmer until noodles are tender (10 min), stirring occasionally.\n6.\nAdd sour cream and mix well."},
+{name:"Pepper Steak Stir-Fry",cat:"Beef",img:"",ing:"PEPPER STEAK STIR-FRY (2 servings)\nSauce: 1-1/2 Tbsp Sugar, 1/4 Cup Soy Sauce, 1/4 Cup Water, 1-1/2 Tbsp Corn Starch\n\n2 Tbsp Extra Virgin Olive Oil (EVOO)\n1 Red Bell Pepper, cut into thin strips\n1 Green Bell Pepper, cut into thin strips\n1 package Steak Stir-Fry Strips, cut into bite size pieces\n2 Garlic Cloves, minced\n1/2 tsp Ground Ginger\nSalt and Pepper\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nMake Rice: Boil water with salt and margarine. Turn off heat, add rice, cover, remove from element. Fluff before serving.\n2.\nMake Sauce: Whisk together soy sauce, sugar, water and cornstarch in a small bowl.\n3.\nHeat EVOO in wok pan over heat 4. Add peppers and cook about 5 minutes.\n4.\nMove peppers to the side. Season steak with salt and pepper and add to pan. Cook about 5 minutes, stirring. Mix steak and peppers together and cook another 2 minutes.\n5.\nAdd garlic and ginger. Cook another 2 minutes.\n6.\nAdd sauce, mix together, and cook about 2 minutes until thickened. Serve over rice."},
+{name:"Mac 'n Cheese 'n Burgers",cat:"Beef",img:"",ing:"MAC 'N CHEESE 'N BURGERS (4 servings)\n4 Cups Fusili Pasta or Macaroni\n1 lb. Lean Ground Beef\n1 small Onion, diced\n2 tsp. Worcestershire Sauce\nSalt and Pepper\n\nCheese Sauce:\n2 Tbsp Margarine, 2 Tbsp Flour\nChicken Stock (1 tsp powder + 1 cup water)\n1 Cup Milk, 1 Tbsp Dijon Mustard\n1 Cup Cheddar Cheese, shredded",steps:"1.\nMake Chicken Stock: Boil 1 cup water, add 1 tsp. chicken stock powder.\n2.\nBoil salted pasta water. Cook pasta 10 minutes, drain.\n3.\nBrown beef in large pan over heat 6, breaking up. Add onion, Worcestershire, salt and pepper. Cook 5-6 more minutes. Drain beef.\n4.\nMelt margarine in small pot, add flour and whisk (roux). Add chicken stock and milk, heat until bubbling. Add Dijon mustard. Remove from heat, mix in cheese until melted.\n5.\nIn a large bowl, mix pasta, beef mixture and cheese sauce together."},
+{name:"Teriyaki Turkey Rice Bowls",cat:"Turkey",img:"",ing:"TERIYAKI TURKEY RICE BOWLS (4 servings)\nTeriyaki Sauce: 1/2 Cup Soy Sauce, 1/4 Cup Water, 2 Tbsp Red Wine Vinegar, 2 Tbsp Brown Sugar, 2 Tbsp Sugar, 2 Garlic Cloves minced, 1 tsp Ground Ginger, (thickener: 1 Tbsp Cornstarch + 2 Tbsp Warm Water)\n\n1 Tbsp Vegetable Oil\n1/2 Cup Onion, diced\n4 Cloves Garlic, minced\n1 lb. Ground Turkey\n1 Cup Broccoli, finely chopped\n2 large Carrots, peeled and grated\nGreen Onions for garnish\n\nRice: 2 Cups Minute Rice, 2 Cups Water, 2 tsp Salt, 2 Tbsp Margarine",steps:"1.\nMake Rice: Boil 2 cups water with salt and margarine. Off heat, add rice, cover, remove from element. Fluff before serving.\n2.\nIn a small saucepan over heat 4, mix teriyaki sauce ingredients (except cornstarch mixture) until sugars dissolve.\n3.\nWhisk cornstarch with 2 Tbsp warm water until dissolved. Slowly whisk into teriyaki sauce and simmer until thickened. Remove from heat.\n4.\nHeat vegetable oil in large pan over heat 6. Add diced onions, cook 5-6 minutes until tender.\n5.\nAdd turkey and garlic, cook until half cooked (7 min), breaking up. Add carrots and broccoli. Cook until turkey is fully cooked (7-10 more min).\n6.\nPour teriyaki sauce over turkey mixture. Simmer 5 minutes. Serve over cooked rice."},
+{name:"Grilled Steak Fajitas",cat:"Beef",img:"",ing:"GRILLED STEAK FAJITAS (4-6 fajitas)\nMarinade: 6 Tbsp Lime Juice, 1/3 Cup EVOO, 3 Cloves Garlic minced, 1 Jalapeno minced, 2 tsp Chili Powder, 1-1/2 tsp Ground Cumin, 1 tsp Paprika, Salt and Pepper\n\n1 lb. Flank Steak, thinly sliced\n1 Red Bell Pepper, thinly sliced\n1 Green Bell Pepper, thinly sliced\n1 Medium Onion, thinly sliced\n4-6 Large Tortillas\nShredded Cheese\nSour Cream (optional)",steps:"1.\nCombine marinade ingredients. Reserve 3 Tbsp for vegetables.\n2.\nPlace steak in container with marinade, mix well. Chill 3-6 hours.\n3.\nHeat grill pan over heat 6 for 5-10 minutes until extremely hot. Lightly oil, grill steak 3-4 minutes, stirring occasionally. Remove steak.\n4.\nToss peppers and onions with reserved marinade. Grill 5-10 minutes until crisp-tender.\n5.\nServe steak and vegetables in tortillas with cheese and sour cream."},
+{name:"Honey Chicken & Green Beans",cat:"Chicken",img:"",ing:"HONEY LEMON CHICKEN AND GREEN BEANS (3 servings)\nHoney Lemon Sauce: Chicken Stock (3/4 tsp powder + 3/4 cup water), 1-1/2 Tbsp Soy Sauce, 1 tsp Lemon Juice, 2 Tbsp Rice Wine Vinegar, 1/4 Cup Honey, 2 Tbsp Cornstarch, 1/4 tsp Ground Ginger, Pinch Red Pepper Flakes, 1 Garlic Clove minced\n\n1 Boneless Skinless Chicken Breast, cut into bite size pieces\nExtra Virgin Olive Oil (EVOO)\n1 Cup Green Beans, trimmed and cut into bite size pieces\nSalt and Pepper\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nMarinate chicken in soy sauce and rice wine vinegar while preparing other ingredients.\n2.\nMake Rice: Boil water with salt and margarine. Off heat, add rice, cover, remove from element.\n3.\nMake Honey Lemon Sauce: Whisk all sauce ingredients together until combined. Set aside.\n4.\nHeat 1 Tbsp EVOO in wok pan over heat 4. Cook green beans 6-7 minutes until bright green but crisp. Remove and set aside.\n5.\nAdd 1 Tbsp EVOO to same pan. Cook chicken 6-7 minutes until cooked through.\n6.\nReturn green beans to pan. Reduce to heat 4, pour in sauce. Cook 2-3 minutes until thickened, tossing to coat.\n7.\nServe over cooked rice."},
+{name:"Chili",cat:"Chili",img:"",ing:"CLASSIC CHILI (6 servings)\n1 Tbsp Extra Virgin Olive Oil (EVOO)\n1 Medium Onion, diced\n1 lb. Lean Ground Beef\n1-1/2 Tbsp Chili Powder\n1 Tbsp Ground Cumin\n1 Tbsp Sugar\n2 Tbsp Tomato Paste\n1 Tbsp Garlic Powder\n1 tsp Salt, 1/2 tsp Pepper, 1/8 tsp Cayenne Pepper\nBeef Stock (1-1/2 tsp powder + 1-1/2 cups water)\n1 Can (19 oz) Seasoned Petite Diced Tomatoes\n1 Can (16 oz) Red Kidney Beans, drained\n1 Can (7 oz) Tomato Sauce",steps:"1.\nMake Beef Stock: Boil 1-1/2 cups water, add 1-1/2 tsp. beef stock powder.\n2.\nHeat EVOO in large pot over heat 6. Add onion and cook 6-7 minutes.\n3.\nAdd ground beef, break apart and cook 6-7 minutes until browned. Drain if needed.\n4.\nAdd all seasonings and tomato paste. Stir until well combined.\n5.\nAdd beef stock, diced tomatoes (with juice), kidney beans and tomato sauce. Stir well.\n6.\nBring to a low boil. Reduce heat and simmer uncovered 25-30 minutes, stirring occasionally.\n7.\nRemove from heat, let rest 5-10 minutes before serving. Top with shredded cheese."},
+{name:"Egg Noodle Chicken",cat:"Chicken",img:"",ing:"EGG NOODLE CHICKEN (2 servings)\n2 Cups Egg Noodles\n2 Tbsp Margarine\n1 Tbsp Dill\n1 Tbsp Chives\n1 Boneless Skinless Chicken Breast, cut into small cubes\n2 Tbsp Extra Virgin Olive Oil (EVOO), divided\n1 Medium Onion, cut into thin half rings\n1 Red Pepper, cut into thin strips\n2 Garlic Cloves, minced\nChicken Stock (1/2 tsp powder + 1/2 cup water)\n2 tsp Paprika\n2 tsp Allspice\n1/4 Cup Sour Cream\nSalt and Pepper",steps:"1.\nMake Chicken Stock: Boil 1/2 cup water, add 1/2 tsp. chicken stock powder.\n2.\nBoil salted water, cook egg noodles 10 minutes.\n3.\nSeason chicken with salt and pepper. Heat 1 Tbsp EVOO in large pan over heat 6. Cook chicken 5-6 minutes until cooked through. Remove and set aside.\n4.\nAdd remaining EVOO, cook peppers, onions and garlic 6-7 minutes until tender.\n5.\nReturn chicken to pan with paprika and allspice. Stir in chicken stock. Simmer 2-3 minutes on heat 3.\n6.\nDrain noodles. Return to pot, mix with margarine, dill and chives.\n7.\nOff heat, stir sour cream into chicken mixture. Serve over egg noodles."},
+{name:"Cooked Rice",cat:"Rice",img:"",ing:"COOKED MINUTE RICE (2 servings)\n1 Cup Minute Rice\n1 Tbsp Margarine\n1 Cup Water\n1 tsp Salt",steps:"1.\nAdd water, margarine and salt to a small pot. Bring to a boil.\n2.\nRemove from stove, add rice, place lid on pot and let sit 10 minutes.\n3.\nFluff with a spatula or fork before serving."},
+{name:"Chicken a la King",cat:"Chicken",img:"",ing:"CHICKEN A LA KING (4 servings)\n1 Cup leftover Roast Chicken, cut into small pieces\n1 Medium Onion, diced\nChicken Stock (1-1/2 tsp powder + 1-1/2 cups water)\n1/3 Cup Flour\n3/4 Cup Milk\n1/2 Cup Margarine\n1/2 Cup Heavy/Whipping Cream\n2 Cups Frozen Vegetables, thawed\n1/2 tsp Dry Mustard\n1/4 tsp Pepper, 1/2 tsp Salt, 1/2 tsp Onion Powder\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nMake Rice and Chicken Stock.\n2.\nMelt margarine in large pot over heat 4. Add onion and cook 5-6 minutes until soft.\n3.\nSprinkle in flour and stir constantly until well combined.\n4.\nPour in chicken stock and mix well.\n5.\nAdd milk, salt, pepper, dry mustard and onion powder. Reduce to heat 3 and simmer uncovered 10 minutes, stirring occasionally.\n6.\nStir in heavy cream and vegetables. Simmer 6 more minutes.\n7.\nAdd chicken and simmer 5 more minutes. Serve over cooked rice."},
+{name:"Chicken & Spaghetti with Pesto",cat:"Chicken",img:"",ing:"CHICKEN AND SPAGHETTI WITH PESTO GRAVY (2 servings)\nSauce: 1 Tbsp Margarine, 1 Tbsp Flour, Chicken Stock (1/2 tsp powder + 1/2 cup water), 1/2 Cup Milk, 3 Tbsp Pesto\n\n1/2 Tbsp Balsamic Vinegar\n1 Boneless Skinless Chicken Breast, cut into bite-size pieces\n2 portions Spaghetti\n1/4 tsp Salt, 1/4 tsp Pepper",steps:"1.\nMake Chicken Stock. Marinate chicken in balsamic vinegar with salt and pepper.\n2.\nBring large pot of salted water to boil. Cook spaghetti 10-12 minutes.\n3.\nSpray air fryer with EVOO, add chicken strips, spray tops. Cook at 400F for 5 minutes, flip, cook another 3 minutes. Internal temp should be 165F.\n4.\nMelt margarine in wok pan over heat 4. Add flour and whisk, let sit 1 minute. Add chicken stock and milk, heat until bubbling. Remove from heat, add pesto and mix.\n5.\nDivide spaghetti between plates. Top with chicken and pesto gravy."},
+{name:"Steak Gruyere",cat:"Beef",img:"",ing:"STEAK GRUYERE AND GREEN BEANS (2 servings)\nGruyere Sauce: 1 Tbsp Margarine, 1-1/2 Tbsp Flour, Chicken Stock (1/4 tsp powder + 1/4 cup water), 1/4 Cup Milk, 1/4 Cup Shredded Gruyere Cheese\n\n3 Tbsp Margarine\n2 Cups Steak Strips, cut into bite-size pieces\n1 Medium Onion, thinly sliced into half rings\n2 Cups Green Beans, ends trimmed\n2 Bay Leaves\n1 tsp Ground Thyme\nSalt and Pepper",steps:"1.\nMake Chicken Stock. Set oven to broil high.\n2.\nFill steamer with water. Add green beans to basket. Steam 15 minutes.\n3.\nMelt 3 Tbsp margarine in small pan over heat 2. Add onions, bay leaves and thyme. Caramelize 10-15 minutes, stirring occasionally.\n4.\nPlace steak in casserole dish, season with salt and pepper. Broil 10 minutes, stirring occasionally.\n5.\nMelt 1 Tbsp margarine in small pot over heat 4. Add flour and whisk, let sit 1 minute. Add chicken stock and milk, heat until bubbling. Off heat, add Gruyere and stir until melted.\n6.\nPlate green beans and steak. Top with caramelized onions and drizzle cheese sauce over everything."},
+{name:"Chicken Stock",cat:"Chicken",img:"",ing:"CHICKEN STOCK (1 Cup)\n1 tsp Chicken Stock Powder\n1 Cup Water",steps:"1.\nBring a kettle of water to a boil.\n2.\nStir together 1 cup boiled water with 1 tsp. chicken stock mix."},
+{name:"Air Fryer Chicken & Asparagus",cat:"Chicken",img:"",ing:"AIR FRYER CHICKEN & OVEN ROASTED ASPARAGUS (2 servings)\nChicken: 2 Boneless Skinless Chicken Breasts cut into strips, 5 Tbsp Margarine melted\nCoating: 1/4 Cup Flour, 1/8 Cup Panko Breadcrumbs, 1/8 tsp Salt, 1 tsp Seasoning Salt, 1/8 tsp Pepper, 1/2 tsp Paprika\n\nAsparagus: 1 bunch Asparagus (rinsed, dried, ends trimmed), 1/2 Tbsp EVOO, 1/2 tsp Kosher Salt, 1/4 tsp Pepper, 2 Cloves Garlic minced, Parmesan Cheese (optional)",steps:"1.\nPreheat oven to 425F. Line baking sheet with parchment.\n2.\nToss asparagus with EVOO, Kosher salt, pepper and garlic. Arrange in single layer on baking sheet. Roast 10 minutes, flip, roast another 10 minutes. Top with Parmesan if desired.\n3.\nSpray air fryer basket with EVOO. Combine coating ingredients in a container. Dip chicken strips in coating.\n4.\nPlace chicken in air fryer basket leaving space. Brush tops with margarine. Cook at 400F for 5 minutes, flip, cook another 5 minutes. Internal temp should be 165F.\n5.\nServe chicken alongside asparagus."},
+{name:"Tomato Macaroni Casserole",cat:"Pasta",img:"",ing:"TOMATO MACARONI CASSEROLE (6 servings)\n2 lbs Ground Beef\n1 Medium Onion, diced\n3 Garlic Cloves, minced\n2 Cans Tomato Soup\n2 Tbsp Italian Seasoning\n1/2 tsp Salt, 1/4 tsp Pepper\n1/2 Tbsp Extra Virgin Olive Oil (EVOO)\n3 Cups uncooked Elbow Macaroni\n1/2 Brick Cheese, shredded\n2 Tbsp Parsley",steps:"1.\nPreheat oven to 350F.\n2.\nBoil salted water. Cook macaroni 10-12 minutes, drain.\n3.\nHeat EVOO in wok pan over heat 4. Cook onions 5-6 minutes. Add beef, break up and cook 7-8 minutes until browned. Drain. Add garlic, salt and pepper. Cook 2 more minutes.\n4.\nIn casserole dish, mix tomato soup and Italian seasoning. Add macaroni, mix. Add beef mixture and stir until combined.\n5.\nSprinkle cheese evenly over top, then sprinkle parsley.\n6.\nBake 20-25 minutes."},
+{name:"Simple Chicken StirFry",cat:"Chicken",img:"",ing:"SIMPLE ASIAN CHICKEN STIR-FRY (3 servings)\n1 Boneless Skinless Chicken Breast, cut into bite-size pieces\n1 Carrot, cut into bite size pieces\n1 Onion, sliced into half rings\n1 Bundle Broccoli, cut into florets\n1 Cup Asian Sesame Salad Dressing\n1 Tbsp Soy Sauce\nSalt and Pepper, Pinch Garlic Salt\n1 Tbsp Extra Virgin Olive Oil (EVOO)\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nMake Rice: Boil water with salt and margarine. Off heat, add rice, cover, remove from element.\n2.\nSteam broccoli, carrots and onion for about 25 minutes.\n3.\nSeason chicken with salt, pepper and garlic salt. Heat EVOO in large pan over heat 6. Cook chicken with soy sauce and 1 Tbsp sesame dressing, stirring occasionally.\n4.\nCombine cooked chicken and vegetables in pan. Add remaining sesame dressing and mix.\n5.\nServe over cooked rice."},
+{name:"Swedish Meatballs",cat:"Meatballs",img:"",ing:"SWEDISH MEATBALLS (4 servings)\nMeatballs: 1 lb Ground Beef, 1/4 Cup Panko Bread Crumbs, 1 Tbsp Parsley, 1/4 tsp Ground Allspice, 1/4 tsp Ground Nutmeg, 1/4 Cup Onion minced, 1/2 tsp Garlic Powder, 1/8 tsp Pepper, 1/2 tsp Salt, 1 Egg\n\nSauce: 5 Tbsp Margarine, 5 Tbsp Flour, Beef Stock (2 tsp powder + 2 cups water), 1 Cup Heavy Cream, 1 Tbsp Worcestershire Sauce, 1 tsp Dijon Mustard\n\n1 Tbsp Extra Virgin Olive Oil (EVOO)\n4 Cups Egg Noodles",steps:"1.\nMake Beef Stock: Boil 2 cups water, add 2 tsp. beef stock powder.\n2.\nBoil salted water, cook egg noodles 10 minutes.\n3.\nCombine all meatball ingredients. Roll into 20 small meatballs.\n4.\nHeat EVOO in large pan over heat 6. Cook meatballs, turning frequently until browned and cooked through. Transfer to plate, cover with foil.\n5.\nIn same pan, melt margarine. Add flour and whisk, let sit 1 minute. Slowly add beef stock and heavy cream. Add Worcestershire sauce and Dijon mustard. Simmer until sauce thickens.\n6.\nReturn meatballs to pan and simmer 1-2 minutes. Serve over egg noodles."},
+{name:"Chicken Pizza",cat:"Chicken",img:"",ing:"CHICKEN PIZZA (2 servings)\n2 Large Boneless Skinless Chicken Breasts, cut into bite size pieces\n1 tsp Italian Seasoning\n1/2 tsp Garlic Powder\n1/2 Cup sliced Pepperoni\n5 Tbsp Pizza Sauce\n2 Large Mushrooms, thinly sliced\n1 Green Pepper, thinly sliced\n1/2 Cup Mozzarella Cheese, grated\n1 Tbsp Margarine\n1 Tbsp Extra Virgin Olive Oil (EVOO)",steps:"1.\nPreheat oven to 375F.\n2.\nSeason chicken with salt, pepper and 1/2 tsp Italian Seasoning.\n3.\nMelt margarine in medium pan over heat 6. Cook mushrooms with garlic powder 5 minutes. Add green peppers and cook another 5-6 minutes.\n4.\nHeat EVOO in large pan over heat 6. Cook seasoned chicken 5-6 minutes until cooked through.\n5.\nIn casserole dish: layer chicken, pizza sauce, pepperoni, mushrooms and peppers, cheese and remaining Italian seasoning.\n6.\nBake 25 minutes until cheese is completely melted."},
+{name:"Sesame Chicken",cat:"Chicken",img:"",ing:"SESAME CHICKEN (2-3 servings)\nSesame Sauce: 2 Tbsp Brown Sugar, 4 Tbsp Soy Sauce, 1 Tbsp Sesame Oil, 1 Tbsp Rice Vinegar, 2 Tbsp Honey, 2 Tbsp Sweet Chili Sauce, 3 Tbsp Ketchup, 2 Garlic Cloves minced\n\n1 Large Boneless Skinless Chicken Breast, cut into strips\n2-1/2 Tbsp Extra Virgin Olive Oil (EVOO)\nCoating: 1 Egg lightly beaten, 3 Tbsp Cornstarch, 5 Tbsp Flour, 1/4 tsp Salt, 1/4 tsp Pepper, 1/4 tsp Garlic Powder, 1 tsp Paprika\n1 Small bunch Green Onions, chopped\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nMake Rice.\n2.\nMix sesame sauce ingredients in a small bowl.\n3.\nHeat EVOO in large pan over heat 6 until very hot.\n4.\nSet up dredging stations: cornstarch / egg / seasoned flour. Dredge chicken in cornstarch, dip in egg, dredge in flour.\n5.\nCook chicken 8-10 minutes, turning occasionally until fully cooked.\n6.\nAdd sauce to pan, bring to a bubble on high heat. Coat chicken in sauce 1-2 minutes. Add green onions and toss.\n7.\nServe on top of rice."},
+{name:"Shepherd's Pie",cat:"Beef",img:"",ing:"SHEPHERD'S PIE (4 servings)\n1 lb Ground Beef\n3 Large Potatoes, peeled and cut into small pieces\n1 Medium Onion, diced\n3-4 Tbsp Margarine\n5 Garlic Cloves (crushed) + 3 Garlic Cloves (minced)\n1 Can (341 mL) Corn\n1 Can (540 mL) Cream Corn\nSalt and Pepper\n1 tsp Parsley\n1 tsp Savory Flakes\nBeef Gravy (for serving)",steps:"1.\nPreheat oven to 375F.\n2.\nBoil potatoes with 5 crushed garlic cloves until fork-tender (10-15 min).\n3.\nBrown beef in large pan over heat 6, breaking up. Drain. Add onions and 3 minced garlic cloves. Cook 4-5 more minutes.\n4.\nMix corn and cream corn in a bowl.\n5.\nDrain potatoes. Mash with margarine and savory flakes.\n6.\nIn casserole dish: layer beef, then corn mixture, then mashed potatoes. Top with parsley.\n7.\nBake 20 minutes. Heat beef gravy until bubbling. Serve over shepherd's pie."},
+{name:"Honey Garlic Pork Chops",cat:"Pork",img:"",ing:"HONEY GARLIC PORK CHOPS (2 servings)\nGlaze: 1/4 Cup Honey, 2 tsp Soy Sauce, 2 Cloves Garlic minced\n\n2 Boneless Pork Chops\nSalt and Pepper\n2 Tbsp Extra Virgin Olive Oil (EVOO)",steps:"1.\nWhisk glaze ingredients together. Set aside.\n2.\nHeat EVOO in large pan over heat 6. Season pork chops with salt and pepper. Cook 6 minutes, flip, cook 6 more minutes until cooked through.\n3.\nAdd glaze to pan, cook about 1 minute. Remove pork chops and continue cooking glaze until thick (pancake syrup consistency).\n4.\nServe thickened glaze over pork chops."},
+{name:"Mongolian Beef",cat:"Beef",img:"",ing:"MONGOLIAN BEEF (2 servings)\nMarinade: 1/4 Cup Soy Sauce, 1 tsp Ground Ginger, 2 Cloves Garlic minced\n\n1 lb. Flank Steak, thinly sliced\n1 Tbsp Coconut Oil\n3 Green Onions, cut into 1-inch diagonal slices\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nMarinate sliced steak in soy sauce, ginger and garlic. Chill 1 hour.\n2.\nMake Rice.\n3.\nHeat coconut oil in large pan over heat 7 until almost smoking (about 10 minutes).\n4.\nDrain steak, reserving marinade. Add meat to hot pan, stirring continuously until cooked through (about 4 minutes).\n5.\nAdd green onions, cook 1 minute.\n6.\nAdd reserved marinade, stir and cook 30 seconds to 1 minute.\n7.\nServe over cooked rice."},
+{name:"Spiced Grilled Chicken",cat:"Chicken",img:"",ing:"SPICED GRILLED CHICKEN (2 servings)\n2 Boneless Skinless Chicken Breasts, butterflied\n2 Tbsp Extra Virgin Olive Oil (EVOO)\n1/2 tsp Kosher Salt\n1 tsp Garlic Powder\n1/4 tsp Cayenne Pepper\n1/4 tsp Pepper",steps:"1.\nPreheat grill pan for 10 minutes.\n2.\nMix EVOO, garlic powder, Kosher salt, pepper and cayenne pepper.\n3.\nPat dry chicken. Brush both sides with EVOO/spice mixture.\n4.\nGrill 7 minutes, flip, grill 7 more minutes. If needed, flip and cook 3 additional minutes until fully cooked."},
+{name:"Steak with Garlic Butter",cat:"Beef",img:"",ing:"STEAK WITH GARLIC BUTTER (2 servings)\n1 large Grilling Steak\n2 Tbsp Kosher Salt\n2 Tbsp Pepper\n2 Tbsp Extra Virgin Olive Oil (EVOO)\n3 Tbsp Margarine\n2 Large Garlic Cloves, minced",steps:"1.\nPreheat oven to 250F.\n2.\nSeason steak with salt and pepper on all sides.\n3.\nPlace on wire rack on baking sheet. Bake 35 minutes.\n4.\nHeat EVOO in large skillet over high heat. Sear steak 30 seconds on one side, flip.\n5.\nImmediately add margarine and garlic, swirling to melt quickly.\n6.\nTilt pan, pool the margarine. Using a spoon, continuously baste the steak for 30-45 seconds.\n7.\nRest steak 10 minutes on cutting board. Slice and serve."},
+{name:"Garlic Steak & Rice Pilaf",cat:"Beef",img:"",ing:"GARLIC STEAK AND RICE PILAF (2 servings)\n1 Small Package Steak Stir Fry Strips\n2 Tbsp Extra Virgin Olive Oil (EVOO)\n1/3 Cup Orzo Pasta\n1/2 Cup Uncooked Minute Rice\nChicken Stock (1 tsp powder + 1 cup water)\n2 Garlic Cloves, minced\n2 Tbsp Parsley\n1/4 Cup White Wine (optional)",steps:"1.\nMake Chicken Stock.\n2.\nHeat 1 Tbsp EVOO in small pot over heat 5. Toast Orzo until golden (4-5 min). Add rice and mix. Add chicken stock, bring to a boil. Reduce to heat 2, cover and simmer 10 minutes.\n3.\nHeat 1 Tbsp EVOO in large pan over heat 6. Add steak and brown. Add garlic and parsley, cook 1 minute. Add white wine if desired, cook 3 minutes to reduce.\n4.\nServe garlic steak alongside rice pilaf."},
+{name:"Chicken & Risotto",cat:"Chicken",img:"",ing:"CHICKEN & RISOTTO (2 servings)\nRisotto: Chicken Stock (3 tsp powder + 4-1/2 cups water, divided), 1 Tbsp EVOO, 1 Small Onion diced, 2 Garlic Cloves minced, 1/2 Cup Arborio Rice, 1/4 Cup Cooking Wine, 1 Tbsp Margarine, 1 tsp Basil, 1/4 tsp Pepper, 1/4 Cup Parmesan (optional)\n\n1/2 Tbsp Balsamic Vinegar\n1 Boneless Skinless Chicken Breast, cut into strips\n2 Tbsp Chicken Stock",steps:"1.\nBoil 3 cups water, add 3 tsp. chicken stock powder. Add 1-1/2 cups more water, bring back to boil, remove from heat.\n2.\nCombine 2 Tbsp of warm chicken stock with balsamic vinegar. Add chicken strips and marinate.\n3.\nHeat 1 Tbsp EVOO in wok pan over heat 4. Cook onions and garlic 5-6 min. Stir in Arborio rice, heat 1-2 min. Add cooking wine, cook until evaporated (2-3 min). Ladle in warm stock, stirring, adding more as pan becomes dry. Total cooking time: 30-40 minutes.\n4.\nWith 10 min left on risotto, air fry chicken at 400F for 5 min, flip, cook 5 more min. Internal temp should be 165F.\n5.\nSeason risotto with pepper, stir in margarine, basil and cheese.\n6.\nServe chicken strips on top of risotto."},
+{name:"Mushroom Pork",cat:"Pork",img:"",ing:"HERBED PORK CHOPS WITH MUSHROOM GRAVY (2 servings)\n2 Boneless Pork Chops\n1/4 tsp Garlic Powder, 1/4 tsp Paprika, Salt and Pepper\n1 Tbsp Extra Virgin Olive Oil (EVOO)\n1 Small Onion, diced\n1 Can Cream of Mushroom Soup\n1/4 Cup Milk or Almond Milk\n1 Cup Carrots, cut into bite size pieces\n\nRice: 1 Cup Minute Rice, 1 Cup Water, 1 tsp Salt, 1 Tbsp Margarine",steps:"1.\nSteam carrots. Make Rice.\n2.\nHeat EVOO in large pan over heat 6. Rub pork chops with salt, pepper, garlic powder and paprika. Cook 6 minutes, flip, cook 6 more minutes (or until cooked through).\n3.\nAdd onions, stir. Add mushroom soup and milk, combine. Cook 5 more minutes.\n4.\nServe pork chops and mushroom gravy over rice with carrots on the side."},
+{name:"Pork Chops & Mustard Gravy",cat:"Pork",img:"",ing:"PORK CHOPS, BAKED BROCCOLI AND MUSTARD GRAVY (2 servings)\nMustard Gravy: 1 Tbsp EVOO, 1 Garlic Clove minced, Chicken Stock (1/8 tsp powder + 1/8 cup water), 1/8 Cup Milk, 2 Tbsp Whole Grain Mustard\n\n2 Boneless Pork Chops\n1 Bunch Broccoli, cut into florets\n2 Tbsp Margarine, melted\n1 tsp Garlic Powder",steps:"1.\nPreheat oven to 375F. Make Chicken Stock.\n2.\nToss broccoli with melted margarine and garlic powder. Roast on lined baking sheet 15-20 minutes until soft.\n3.\nCook pork chops in large pan 6 minutes, flip, cook 6 more minutes. Remove and keep warm.\n4.\nIn same pan, heat EVOO over heat 6. Cook garlic until golden. Add chicken stock and milk, bring to a boil. Add whole grain mustard and stir.\n5.\nServe mustard gravy over broccoli and pork chops."},
+{name:"Pork and Apples",cat:"Pork",img:"",ing:"PORK CHOPS WITH APPLES, ONIONS AND CIDER GRAVY (2 servings)\nCider Gravy: 1 Tbsp Margarine, 1 Tbsp Flour, 1/4 Cup Apple Cider, Chicken Stock (1/4 tsp powder + 1/4 cup water)\n\n2 Boneless Pork Chops\n1/2 Tbsp Extra Virgin Olive Oil (EVOO)\n1 Tbsp Margarine\nSalt & Pepper\n2 Golden Delicious Apples, thinly sliced\n1 Small Onion, sliced into thin half rings\n2 tsp Thyme",steps:"1.\nMake Chicken Stock.\n2.\nMelt 1 Tbsp margarine in large pan over heat 6. Cook apples, onions and thyme 6-7 minutes until tender.\n3.\nHeat EVOO in a separate pan. Season pork chops with salt and pepper. Cook 6 minutes, flip, cook 6 more minutes.\n4.\nMelt 1 Tbsp margarine in small pot over heat 4. Add flour and whisk, let sit 1 minute. Add chicken stock and apple cider, stir. Simmer on heat 2 about 5 minutes.\n5.\nServe apples and onions over pork chops, topped with cider gravy."},
+{name:"Scalloped Potatoes",cat:"Potatoes",img:"",ing:"SCALLOPED POTATOES (2 servings)\n2-3 Medium Potatoes, peeled and thinly sliced\n1 Medium Onion, thinly sliced\nApprox. 1 Cup Flour\nApprox. 1 Cup Milk\n\n*Use as much flour and milk as needed for desired creaminess",steps:"1.\nIn white circle casserole dish, layer: potatoes, then onions, then 1 Tbsp flour - repeat until potatoes are used.\n2.\nAdd 1/2 cup milk to casserole dish.\n3.\nMicrowave covered on Power Level 7 for 10 minutes.\n4.\nStir, add more milk and flour if needed. Microwave covered another 10 minutes on Power Level 7.\n5.\nStir again. If needed, microwave 5 more minutes on Power Level 7.\n6.\nServe once potatoes are cooked through to desired creaminess. Best with margarine, salt and pepper."},
+{name:"Pumpkin Pie",cat:"Pie",img:"",ing:"PUMPKIN PIE (1 Pie)\n1 Egg\n1 Can (540 mL) Pumpkin Pie Filling\n1/3 Cup Evaporated Milk\nOne 9-inch unbaked pie shell",steps:"1.\nPreheat oven to 425F.\n2.\nLightly beat egg. Add pumpkin pie filling and evaporated milk. Mix and pour into pie shell.\n3.\nBake 15 minutes.\n4.\nReduce temperature to 375F. Bake 35-40 more minutes until knife inserted in centre comes out clean.\n5.\nAllow to cool before serving."},
+{name:"Cinnamon Pancakes & Apples",cat:"Pancakes",img:"",ing:"CINNAMON PANCAKES WITH CARAMELIZED APPLES (2 servings)\nPancakes: 1/3 Cup Flour, 3/4 tsp Cinnamon, 3/4 tsp Baking Powder, Pinch Sea Salt, 3/4 Tbsp Maple Syrup, 113 mL Buttermilk, 2 Eggs (separated), Sunflower Oil\n\nCaramelized Apples: 2 Golden Delicious Apples (peeled, cored, wedged), 1 Tbsp Sugar, 1/2 tsp Cinnamon, 1 Tbsp Margarine, 100 mL Maple Syrup",steps:"1.\nPreheat oven to 250F. Place cookie sheet inside to warm. Once heated, turn oven off.\n2.\nSift flour, cinnamon, baking powder and salt into large bowl. Make a well in the middle.\n3.\nAdd maple syrup, buttermilk and egg yolks to the well. Whisk from middle outward until smooth and fairly thick.\n4.\nWhisk egg whites to stiff peaks. Fold into batter.\n5.\nHeat large pan with 2 Tbsp sunflower oil over medium heat. Drop spoonfuls of batter, spaced apart. Cook 2 min on first side until bubbles form. Flip, cook 1 more minute. Transfer to warm oven. Repeat.\nApples:\n1.\nMelt margarine in large pan over medium heat. Toss apple wedges with cinnamon and sugar. Add to pan, cook 5-6 minutes until soft.\n2.\nAdd maple syrup, mix, let bubble a few minutes.\n3.\nTop pancakes with caramelized apples."},
+{name:"French Bread",cat:"Breads",img:"",ing:"FRENCH BREAD (2 LB Loaf - Bread Machine)\n1-1/2 Cups Water, room temperature\n3-1/4 Cups Bread Flour\n1-1/2 Tbsp Sugar\n1-1/4 tsp Salt\n2 tsp Bread Machine Yeast",steps:"1.\nRemove loaf pan from bread machine. Insert black paddle.\n2.\nAdd all ingredients to loaf pan in the order listed above.\n3.\nSelect 'crusty' loaf setting and '2 pound' load size. Press Start."},
+{name:"Sugar Cookies",cat:"Cookies",img:"",ing:"SUGAR COOKIES (20-21 Cookies)\n1 Large Egg\n2 Cups Flour, sifted\n1/4 tsp Salt\n3/4 Cup Sugar\n3/4 Cup Salted Butter, room temperature\n1 tsp Vanilla",steps:"1.\nIn stand mixer with paddle attachment, cream butter and sugar. Mix in egg and vanilla. Scrape down sides.\n2.\nAdd sifted flour and salt. Mix until combined. Do not over mix.\n3.\nRoll out dough to 1/4 inch thickness. Cut into desired shapes.\n4.\nChill cut shapes in refrigerator for 1 hour before baking.\n5.\nPreheat oven to 325F. Bake on parchment-lined cookie sheet 13-15 minutes until edges are golden brown.\n6.\nImmediately transfer to a cool, flat surface."},
+{name:"Air Fryer Hamburgers",cat:"Beef",img:"",ing:"AIR FRYER FROZEN HAMBURGERS (2 servings)\n2 Frozen Hamburgers\n2 Hamburger buns\n2 Cheese Slices\n1/2 Tbsp Extra Virgin Olive Oil (EVOO)",steps:"1.\nSpray air fryer baskets with EVOO. Place one hamburger in each basket.\n2.\nCook at 400F for 7 minutes. Flip and cook 5 more minutes. Add cheese slices and let sit 2 minutes to melt.\n3.\nServe on hamburger buns with favourite toppings."},
+{name:"Air Fryer Hot Dogs",cat:"Hot Dogs",img:"",ing:"AIR FRYER HOT DOGS (2 servings)\n4-6 Hot Dogs\n4-6 Hot Dog Buns",steps:"1.\nSlice hot dogs in a spiral. Place 2-3 in each air fryer basket.\n2.\nCook at 400F for 6 minutes.\n3.\nPlace hot dogs in buns. Put in air fryer and cook at 400F for 2 minutes to lightly toast the buns.\n4.\nServe with favourite toppings."}
+];
+
+// Merge localStorage
+try {
+  const saved = localStorage.getItem('k_v3');
+  if (saved) {
+    recipes = JSON.parse(saved);
+  }
+} catch (e) {}
+
+let editIdx = null;
+let activeFilter = 'All';
+
+function save() {
+  localStorage.setItem('k_v3', JSON.stringify(recipes));
+}
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function getCategories() {
+  return ['All', ...[...new Set(recipes.map(r => r.cat))].sort()];
+}
+
+function getFiltered() {
+  const term = document.getElementById('search').value.toLowerCase();
+  return recipes.filter(r =>
+    (activeFilter === 'All' || r.cat === activeFilter) &&
+    (!term || r.name.toLowerCase().includes(term) || r.cat.toLowerCase().includes(term))
+  );
+}
+
+function renderCats() {
+  const el = document.getElementById('catFilters');
+  el.innerHTML = '';
+  getCategories().forEach(cat => {
+    const b = document.createElement('button');
+    b.className = 'cat-pill' + (cat === activeFilter ? ' active' : '');
+    b.textContent = cat;
+    b.onclick = () => { activeFilter = cat; renderCats(); renderList(); };
+    el.appendChild(b);
+  });
+}
+
+function renderList() {
+  const el = document.getElementById('recipeList');
+  const filtered = getFiltered();
+  el.innerHTML = '';
+  document.getElementById('recipeCount').textContent =
+    filtered.length + ' recipe' + (filtered.length !== 1 ? 's' : '');
+
+  filtered.forEach(r => {
+    const i = recipes.indexOf(r);
+    const div = document.createElement('div');
+    div.className = 'recipe-item' + (i === editIdx ? ' active' : '');
+	div.draggable = true;
+    div.dataset.index = i;
+    div.innerHTML = `
+      <div class="item-icon">${icon(r.cat)}</div>
+      <div class="item-text">
+        <div class="item-name">${r.name}</div>
+        <div class="item-cat">${r.cat}</div>
+      </div>`;
+    div.onclick = () => showDetail(i);
+	div.addEventListener('dragstart', (e) => {
+  e.dataTransfer.setData('text/plain', i);
+});
+
+div.addEventListener('dragover', (e) => {
+  e.preventDefault();
+});
+
+div.addEventListener('drop', (e) => {
+  e.preventDefault();
+
+  const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+  const toIndex = i;
+
+  if (fromIndex === toIndex) return;
+
+  const moved = recipes.splice(fromIndex, 1)[0];
+  recipes.splice(toIndex, 0, moved);
+
+  save();
+  renderList();
+  renderCats();
+  renderStats();
+});
+    el.appendChild(div);
+  });
+}
+
+function renderStats() {
+  document.getElementById('welcomeActions').innerHTML = `
+    
+    <div class="action-card" onclick="showAdd()">
+      <div class="action-title">New Recipe</div>
+      <div class="action-sub">Create something fresh</div>
+    </div>
+
+    <div class="action-card" onclick="activeFilter='All'; renderCats(); renderList(); show('welcome'); hide('detailView');">
+      <div class="action-title">Browse All</div>
+      <div class="action-sub">View full collection</div>
+    </div>
+
+    <div class="action-card" onclick="document.getElementById('search').focus()">
+      <div class="action-title">Search</div>
+      <div class="action-sub">Find ingredients or recipes</div>
+    </div>
+
+    <div class="action-card" onclick="if(recipes.length) showDetail(recipes.length - 1)">
+      <div class="action-title">Latest</div>
+      <div class="action-sub">Recently added recipe</div>
+    </div>
+
+  `;
+}
+function resolveImage(name) {
+  const base = "images/" + name;
+
+  const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+  // return first possible path (browser will fail silently if missing)
+  return base + extensions[0]; 
+}
+
+function showDetail(i) {
+  editIdx = i;
+  const r = recipes[i];
+  hide('welcome'); hide('formView'); show('detailView');
+  document.getElementById('detCat').textContent = r.cat;
+  document.getElementById('detTitle').textContent = r.name;
+const hero = document.getElementById('heroEmoji');
+setHeroImage(r, hero);
+
+if (r.img && r.img.trim()) {
+  hero.style.backgroundImage = `url('${r.img}')`;
+  hero.style.backgroundSize = 'cover';
+  hero.style.backgroundPosition = 'center';
+  hero.textContent = '';
+} else {
+  hero.style.backgroundImage = '';
+  hero.textContent = icon(r.cat);
+}
+  document.getElementById('detIng').textContent = r.ing;
+
+  // Render steps
+  const stepsEl = document.getElementById('detSteps');
+  const raw = r.steps || '';
+  const hasNumbers = /^\d+\./m.test(raw);
+  if (hasNumbers) {
+    const parts = raw.split(/\n(?=\d+\.)/);
+    let html = '';
+    parts.forEach(part => {
+      const m = part.match(/^(\d+)\.\s*([\s\S]*)/);
+      if (m) html += `<div class="step"><div class="step-num">${m[1]}</div><div class="step-text">${m[2].trim()}</div></div>`;
+      else if (part.trim()) html += `<div class="raw-steps">${part.trim()}</div>`;
+    });
+    stepsEl.innerHTML = html || `<div class="raw-steps">${raw}</div>`;
+  } else {
+    stepsEl.innerHTML = `<div class="raw-steps">${raw}</div>`;
+  }
+
+  document.getElementById('btnEdit').onclick = () => editRecipe(i);
+  document.getElementById('btnDelete').onclick = () => deleteRecipe(i);
+  renderList();
+}
+function setHeroImage(r, hero) {
+  const base = "images/" + r.name;
+  const exts = [".jpg", ".jpeg", ".png", ".webp"];
+
+  let i = 0;
+
+  function tryNext() {
+    if (i >= exts.length) {
+      hero.textContent = icon(r.cat);
+      return;
+    }
+
+    const img = new Image();
+    img.src = base + exts[i];
+
+    img.onload = () => {
+      hero.innerHTML = `<img src="${img.src}" style="width:100%;height:100%;object-fit:cover;">`;
+    };
+
+    img.onerror = () => {
+      i++;
+      tryNext();
+    };
+  }
+
+  tryNext();
+}
+function showAdd() {
+  editIdx = null;
+  hide('welcome'); hide('detailView'); show('formView');
+  document.getElementById('formTitle').innerHTML = 'New <em>Creation</em>';
+  ['f_name','f_cat','f_img','f_ing','f_steps'].forEach(id => document.getElementById(id).value = '');
+}
+
+function editRecipe(i) {
+  const r = recipes[i];
+  editIdx = i;
+  hide('detailView'); show('formView');
+  document.getElementById('formTitle').innerHTML = 'Edit <em>Recipe</em>';
+  document.getElementById('f_name').value = r.name;
+  document.getElementById('f_cat').value = r.cat;
+  document.getElementById('f_img').value = r.img || '';
+  document.getElementById('f_ing').value = r.ing;
+  document.getElementById('f_steps').value = r.steps;
+}
+
+function saveRecipe() {
+  const r = {
+    name: document.getElementById('f_name').value.trim(),
+    cat: document.getElementById('f_cat').value.trim() || 'Other',
+    img: document.getElementById('f_img').value.trim(),
+    ing: document.getElementById('f_ing').value,
+    steps: document.getElementById('f_steps').value
+  };
+  if (!r.name) { alert('Please give your recipe a name.'); return; }
+  if (editIdx !== null) { recipes[editIdx] = r; }
+  else { recipes.push(r); editIdx = recipes.length - 1; }
+  save(); renderCats(); renderList(); renderStats(); showDetail(editIdx);
+}
+
+function deleteRecipe(i) {
+  if (confirm('Remove "' + recipes[i].name + '" from your collection?')) {
+    recipes.splice(i, 1); editIdx = null;
+    save(); renderCats(); renderList(); renderStats();
+    hide('detailView'); show('welcome');
+  }
+}
+
+function hideForm() {
+  hide('formView');
+  if (editIdx !== null) showDetail(editIdx); else show('welcome');
+}
+
+renderCats(); renderList(); renderStats();
+document.getElementById('imgBtn').addEventListener('click', () => {
+  document.getElementById('f_img_file').click();
+});
+document.getElementById('f_img_file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // ONLY store filename
+  document.getElementById('f_img').value = "images/" + file.name;
+});
+function sortRecipesAZ() {
+  recipes.sort((a, b) => a.name.localeCompare(b.name));
+  save();
+  renderList();
+  renderCats();
+  renderStats();
+}
+function goHome() {
+  hide('detailView');
+  hide('formView');
+  show('welcome');
+  editIdx = null;
+}
+function trySetHeroImage(r) {
+  const hero = document.getElementById('heroEmoji');
+
+  const base = "images/" + r.name;
+  const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+  let i = 0;
+
+  function tryNext() {
+    if (i >= extensions.length) {
+      hero.textContent = icon(r.cat);
+      return;
+    }
+
+    const img = new Image();
+    img.src = base + extensions[i];
+
+    img.onload = () => {
+      hero.innerHTML = `<img src="${img.src}" style="width:100%;height:100%;object-fit:cover;">`;
+    };
+
+    img.onerror = () => {
+      i++;
+      tryNext();
+    };
+  }
+
+  tryNext();
+}
+</script>
+</body>
+</html>
