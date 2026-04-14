@@ -2,299 +2,948 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
+  <!-- viewport: makes the page scale correctly on tablets and phones -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kimberly's Cookbook</title>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       FONTS — loaded from Google Fonts (requires internet connection)
+       • Cormorant Garamond — elegant serif used for titles & body text
+       • Jost             — clean sans-serif for labels and UI
+       • Satisfy          — script font used for the "Kimberly's" logo
+  ════════════════════════════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Satisfy&display=swap" rel="stylesheet">
+
   <style>
+
+    /* ═══════════════════════════════════════════════════════════════
+       COLOUR PALETTE — edit these variables to retheme the whole app.
+       Every colour used throughout the file references one of these.
+    ════════════════════════════════════════════════════════════════ */
     :root {
-      --ink: #1c1208;
-      --paper: #faf6f0;
-      --cream: #f4ede0;
-      --rust: #b5451b;
-      --rust-light: #e8856a;
-      --terracotta: #c96a3a;
-      --sage: #6b8068;
-      --gold: #c8922a;
-      --warm-gray: #8a7f74;
-      --border: #e0d4c3;
+      --ink:        #1c1208;   /* near-black used for text & sidebar bg */
+      --paper:      #faf6f0;   /* warm off-white — main background */
+      --cream:      #f4ede0;   /* slightly darker cream — ingredients panel */
+      --rust:       #b5451b;   /* primary accent — buttons, badges, highlights */
+      --rust-light: #e8856a;   /* lighter rust — sidebar subtitle */
+      --terracotta: #c96a3a;   /* secondary accent — sort button */
+      --sage:       #6b8068;   /* muted green — success toast border */
+      --gold:       #c8922a;   /* warm gold (available for future use) */
+      --warm-gray:  #8a7f74;   /* medium gray — labels and secondary text */
+      --border:     #e0d4c3;   /* subtle tan border between sections */
     }
 
+    /* ── RESET ──────────────────────────────────────────────────── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Jost', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── OUTER SHELL ─────────────────────────────────────────────
+       .app is the flex container that holds sidebar + main side-by-side.
+       On small screens (via media query below) it switches to column.
+    ──────────────────────────────────────────────────────────── */
     .app { display: flex; height: 100vh; overflow: hidden; }
 
-    /* SIDEBAR */
+
+    /* ═══════════════════════════════════════════════════════════════
+       SIDEBAR
+       Fixed-width dark panel on the left containing:
+         • Logo header
+         • Search bar
+         • Category filter pills
+         • Recipe list
+         • Footer buttons (New Recipe, Sort A→Z)
+    ════════════════════════════════════════════════════════════════ */
     .sidebar {
-      width: 300px; min-width: 300px;
+      width: 280px;
+      min-width: 280px;
       background: var(--ink);
-      display: flex; flex-direction: column;
-      height: 100vh; position: relative; overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease; /* used for mobile slide-in/out */
     }
+
+    /* Decorative radial glow in the top-right corner of the sidebar */
     .sidebar::before {
-      content: ''; position: absolute;
+      content: '';
+      position: absolute;
       top: -80px; right: -80px;
       width: 280px; height: 280px;
       background: radial-gradient(circle, rgba(181,69,27,0.25) 0%, transparent 70%);
       pointer-events: none;
     }
-    .sidebar-header { padding: 32px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .logo-script { font-family: 'Satisfy', cursive; font-size: 2.2rem; color: #fff; line-height: 1; }
-    .logo-sub { font-size: 0.62rem; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: var(--rust-light); margin-top: 6px; }
 
-    .search-wrap { padding: 16px 16px 8px; position: relative; }
-    .search-wrap svg { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); opacity: 0.35; pointer-events: none; }
+    /* ── Sidebar header: logo area ── */
+    .sidebar-header {
+      padding: 28px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer; /* clicking the logo returns to the home screen */
+    }
+    .logo-script {
+      font-family: 'Satisfy', cursive;
+      font-size: 2rem;
+      color: #fff;
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 0.58rem;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--rust-light);
+      margin-top: 5px;
+    }
+
+    /* ── Search bar ── */
+    .search-wrap { padding: 14px 14px 6px; position: relative; }
+    /* The magnifying glass SVG is positioned inside the input */
+    .search-wrap svg {
+      position: absolute;
+      left: 28px; top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.35;
+      pointer-events: none;
+    }
     .search-input {
-      width: 100%; padding: 10px 14px 10px 38px;
-      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 9px; color: #fff; font-family: 'Jost', sans-serif;
-      font-size: 0.82rem; font-weight: 300; outline: none; transition: border-color 0.2s;
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 9px;
+      color: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s;
     }
     .search-input::placeholder { color: rgba(255,255,255,0.28); }
     .search-input:focus { border-color: rgba(181,69,27,0.5); }
 
+    /* ── Category filter pills ──
+       Rendered dynamically in renderCats(). The "active" class is added
+       to whichever category is currently selected.
+    ── */
     .cats {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 16px 12px;
-  text-align: center;
-}
-    .cat-pill {
-      font-size: 0.6rem; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; background: rgba(244, 237, 224, 0.22);
-      padding: 3px 9px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.13);
-      color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.18s; white-space: nowrap; display: inline-flex;
-align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 6px 14px 10px;
     }
-    .cat-pill:hover, .cat-pill.active { background: var(--rust); border-color: var(--rust); color: #fff; }
+    .cat-pill {
+      font-size: 0.58rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(244,237,224,0.12);
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .cat-pill:hover,
+    .cat-pill.active { background: var(--rust); border-color: var(--rust); color: #fff; }
 
-    .recipe-count { padding: 0 16px 6px; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.22); font-weight: 300; }
+    /* Recipe count label (e.g. "42 recipes") */
+    .recipe-count {
+      padding: 0 14px 5px;
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      font-weight: 300;
+    }
 
-    .recipe-list { flex: 1; overflow-y: auto; padding: 4px 10px 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+    /* ── Scrollable recipe list ── */
+    .recipe-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 8px 8px;
+      /* thin scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.08) transparent;
+    }
     .recipe-list::-webkit-scrollbar { width: 3px; }
     .recipe-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
+    /* Each row in the recipe list */
     .recipe-item {
-      display: flex; align-items: center; gap: 11px;
-      padding: 9px 11px; border-radius: 9px; cursor: pointer;
-      transition: all 0.18s; border: 1px solid transparent; margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: 1px solid transparent;
+      margin-bottom: 2px;
     }
     .recipe-item:hover { background: rgba(255,255,255,0.06); }
+    /* The currently-open recipe gets a rust highlight */
     .recipe-item.active { background: rgba(181,69,27,0.14); border-color: rgba(181,69,27,0.28); }
 
-    .item-icon { width: 34px; height: 34px; border-radius: 7px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    /* Emoji icon square on the left of each list row */
+    .item-icon {
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      background: rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
     .item-text { flex: 1; min-width: 0; }
-    .item-name { font-size: 0.8rem; font-weight: 400; color: rgba(255,255,255,0.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-    .item-cat { font-size: 0.62rem; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-top: 1px; }
+    .item-name {
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: rgba(255,255,255,0.82);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+    }
+    .item-cat {
+      font-size: 0.6rem;
+      font-weight: 300;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
+      margin-top: 1px;
+    }
 
-    .sidebar-footer { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    /* ── Sidebar footer: action buttons ── */
+    .sidebar-footer {
+      padding: 12px 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    /* Shared button style for "New Recipe" and "Sort A→Z" */
     .btn-new {
-      width: 100%; padding: 11px; background: var(--rust); color: #fff; border: none;
-      border-radius: 9px; font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500;
-      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+      width: 100%;
+      padding: 10px;
+      background: var(--rust);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s;
       display: flex; align-items: center; justify-content: center; gap: 7px;
     }
     .btn-new:hover { background: #c94f20; }
+    /* The sort button reuses btn-new but with a terracotta colour override */
+    .btn-sort { background: var(--terracotta); }
+    .btn-sort:hover { background: #b85c2e; }
 
-    /* MAIN */
-    .main { flex: 1; overflow-y: auto; background: var(--paper); position: relative; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       MOBILE MENU TOGGLE
+       On small screens, the sidebar slides off-screen and a ☰ button
+       appears top-left to bring it back.
+    ════════════════════════════════════════════════════════════════ */
+    .mobile-toggle {
+      display: none; /* hidden on desktop; shown via media query */
+      position: fixed;
+      top: 14px; left: 14px;
+      z-index: 200;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      width: 40px; height: 40px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    /* Dark overlay behind the sidebar on mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+
+    /* ═══════════════════════════════════════════════════════════════
+       MAIN CONTENT AREA
+       Takes up all space to the right of the sidebar.
+       Scrolls independently from the sidebar.
+    ════════════════════════════════════════════════════════════════ */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--paper);
+      position: relative;
+    }
     .main::-webkit-scrollbar { width: 5px; }
     .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* WELCOME */
-    .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 60px 40px; }
-    .welcome-ornament { font-size: 3.5rem; margin-bottom: 20px; opacity: 0.45; }
-    .welcome h2 { font-family: 'Cormorant Garamond', serif; font-size: 3.2rem; font-weight: 300; color: var(--ink); line-height: 1.1; }
-    .welcome h2 em { font-style: italic; color: var(--rust); }
-    .welcome p { margin-top: 14px; color: var(--warm-gray); font-size: 0.88rem; font-weight: 300; }
-    .welcome-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; max-width: 500px; width: 100%; }
-    .welcome-stat { background: var(--cream); border-radius: 12px; padding: 18px 14px; border: 1px solid var(--border); }
-    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 600; color: var(--rust); line-height: 1; }
-    .stat-label { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--warm-gray); margin-top: 4px; }
 
-    /* DETAIL */
-    .detail-hero { height: 260px; background: var(--cream); position: relative; overflow: hidden; }
+    /* ═══════════════════════════════════════════════════════════════
+       WELCOME / HOME SCREEN
+       Shown when no recipe is selected.
+       Contains the greeting, daily quote, stat cards, and quick-action tiles.
+    ════════════════════════════════════════════════════════════════ */
+    .welcome {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* ── Welcome hero banner ── */
+    .welcome-hero {
+      width: 100%;
+      background: var(--ink);
+      position: relative;
+      overflow: hidden;
+      padding: 52px 40px 44px;
+      text-align: center;
+    }
+    /* Decorative background blobs inside the hero */
+    .welcome-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(181,69,27,0.3) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .welcome-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; right: -40px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(200,146,42,0.18) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .welcome-hero-inner { position: relative; z-index: 1; }
+    .welcome-ornament {
+      font-size: 2.8rem;
+      margin-bottom: 14px;
+      display: block;
+      animation: floatBob 3s ease-in-out infinite;
+    }
+    @keyframes floatBob {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-6px); }
+    }
+    .welcome h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 300;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .welcome h2 em { font-style: italic; color: var(--rust-light); }
+    .welcome-tagline {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.83rem;
+      font-weight: 300;
+      margin-top: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Daily quote strip ──
+       A rotating culinary quote shown below the greeting.
+       To add / change quotes, edit the QUOTES array in the JavaScript section.
+    ── */
+    .quote-strip {
+      width: 100%;
+      background: var(--rust);
+      padding: 12px 32px;
+      text-align: center;
+    }
+    .quote-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-style: italic;
+      color: #fff;
+      line-height: 1.5;
+    }
+    .quote-attr {
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+
+    /* ── Stats row ──
+       Three cards showing recipe count, category count, chicken count.
+       Rendered dynamically in renderStats().
+    ── */
+    .welcome-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 28px 32px 0;
+      width: 100%;
+      max-width: 700px;
+    }
+    .stat-card {
+      background: var(--cream);
+      border-radius: 14px;
+      padding: 20px 16px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: var(--rust);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--warm-gray);
+      margin-top: 5px;
+    }
+
+    /* ── Quick-action tiles ──
+       Four clickable cards: New Recipe, Browse All, Search, Latest.
+       Rendered dynamically in renderStats().
+    ── */
+    .welcome-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      padding: 20px 32px;
+      width: 100%;
+      max-width: 700px;
+    }
+    .action-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+    .action-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--rust);
+      transform: scaleY(0);
+      transition: transform 0.2s ease;
+      transform-origin: bottom;
+    }
+    .action-card:hover { transform: translateY(-2px); border-color: var(--rust); box-shadow: 0 6px 20px rgba(181,69,27,0.1); }
+    .action-card:hover::before { transform: scaleY(1); }
+    .action-icon { font-size: 1.5rem; margin-bottom: 10px; display: block; }
+    .action-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    .action-sub {
+      font-size: 0.67rem;
+      color: var(--warm-gray);
+      margin-top: 3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Recently added strip ──
+       Shows up to 4 of the most recently added recipes as clickable chips.
+    ── */
+    .recent-section {
+      width: 100%;
+      max-width: 700px;
+      padding: 0 32px 32px;
+    }
+    .recent-label {
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .recent-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .recent-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .recent-chip {
+      padding: 6px 14px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'Cormorant Garamond', serif;
+    }
+    .recent-chip:hover { background: var(--rust); color: #fff; border-color: var(--rust); }
+
+
+    /* ═══════════════════════════════════════════════════════════════
+       RECIPE DETAIL VIEW
+       Shown when a recipe is selected. Contains:
+         • Hero image / emoji banner
+         • Ingredients panel (left)
+         • Method / steps panel (right)
+    ════════════════════════════════════════════════════════════════ */
+    /* Slide-in animation when switching between recipes */
+    .detail { animation: slideIn 0.28s ease; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Hero banner at the top of each recipe ── */
+    .detail-hero {
+      height: 240px;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Background: shows image if one is set; otherwise shows a gradient + emoji */
     .detail-hero-bg {
       position: absolute; inset: 0;
       background: linear-gradient(135deg, #1c1208 0%, #3d2510 50%, #b5451b 100%);
       display: flex; align-items: center; justify-content: center;
-      font-size: 5.5rem;
+      font-size: 5rem;
+      background-size: cover;
+      background-position: center;
+	  background-repeat: no-repeat;
     }
-    .detail-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(28,18,8,0.68) 0%, transparent 55%); }
+    /* Dark gradient overlay so white text is readable over photos */
+    .detail-hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(28,18,8,0.72) 0%, transparent 55%);
+    }
+    /* Title and buttons in the bottom-left of the hero */
     .detail-hero-content {
-      position: absolute; bottom: 24px; left: 36px; right: 36px;
+      position: absolute;
+      bottom: 20px; left: 30px; right: 30px;
       display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
     }
-    .detail-cat-badge { display: inline-block; padding: 3px 11px; background: var(--rust); color: #fff; border-radius: 20px; font-size: 0.62rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; }
-    .detail-title { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; color: #fff; line-height: 1.1; text-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+    .detail-cat-badge {
+      display: inline-block;
+      padding: 3px 11px;
+      background: var(--rust);
+      color: #fff;
+      border-radius: 20px;
+      font-size: 0.6rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .detail-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: #fff;
+      line-height: 1.1;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+    }
+    /* Print / Edit / Delete buttons */
     .detail-actions { display: flex; gap: 7px; flex-shrink: 0; }
     .action-btn {
-      padding: 8px 16px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.28);
-      background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); color: #fff;
-      font-family: 'Jost', sans-serif; font-size: 0.7rem; font-weight: 500; letter-spacing: 1px;
-      text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+      padding: 7px 14px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s;
       display: flex; align-items: center; gap: 5px;
     }
-    .action-btn:hover { background: rgba(255,255,255,0.18); }
-    .action-btn.danger:hover { background: rgba(220,60,60,0.3); }
+    .action-btn:hover { background: rgba(255,255,255,0.2); }
+    .action-btn.danger:hover { background: rgba(220,60,60,0.35); }
 
+    /* ── Two-column layout: Ingredients | Method ── */
     .detail-body { display: grid; grid-template-columns: 1fr 1.4fr; }
-    .detail-ingredients { padding: 32px 28px 44px 36px; border-right: 1px solid var(--border); background: var(--cream); }
-    .detail-method { padding: 32px 36px 44px 28px; background: var(--paper); }
+    .detail-ingredients {
+      padding: 28px 24px 40px 30px;
+      border-right: 1px solid var(--border);
+      background: var(--cream);
+    }
+    .detail-method { padding: 28px 30px 40px 24px; background: var(--paper); }
 
+    /* Section header (e.g. "INGREDIENTS" with a line to the right) */
     .section-label {
-      font-size: 0.58rem; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
-      color: var(--rust); margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+      font-size: 0.56rem; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--rust); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
     }
     .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.detail-hero-bg {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, #1c1208 0%, #3d2510 50%, #b5451b 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 5.5rem;
-    background-size: cover;
-  background-position: center;
-}
-    .ingredients-text { font-family: 'Cormorant Garamond', serif; font-size: 0.98rem; font-weight: 400; line-height: 2; color: var(--ink); white-space: pre-wrap; }
 
-    .step { display: flex; gap: 14px; margin-bottom: 22px; }
-    .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
-    .step-text { font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; line-height: 1.75; color: #3a2c1c; font-weight: 300; }
-    .raw-steps { font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; line-height: 1.9; color: #3a2c1c; font-weight: 300; white-space: pre-wrap; }
+    /* Ingredients are displayed as pre-formatted text to preserve line breaks */
+    .ingredients-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.96rem; font-weight: 400; line-height: 2;
+      color: var(--ink); white-space: pre-wrap;
+    }
 
-    /* FORM */
-    .form-view { padding: 44px 48px; max-width: 860px; }
-    .form-title { font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; font-weight: 300; color: var(--ink); margin-bottom: 6px; }
+    /* Numbered step rows */
+    .step { display: flex; gap: 14px; margin-bottom: 14px; }
+    .step-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--ink); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.62rem; font-weight: 600;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .step-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; line-height: 1.65;
+      color: #3a2c1c; font-weight: 300;
+    }
+    /* For un-numbered / free-form method text */
+    .raw-steps {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; line-height: 1.9;
+      color: #3a2c1c; font-weight: 300; white-space: pre-wrap;
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════
+       RECIPE FORM (Add / Edit)
+       Shown when "New Recipe" or "Edit" is clicked.
+    ════════════════════════════════════════════════════════════════ */
+    .form-view { padding: 40px 44px; max-width: 860px; }
+    .form-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.6rem; font-weight: 300;
+      color: var(--ink); margin-bottom: 6px;
+    }
     .form-title em { font-style: italic; color: var(--rust); }
-    .form-subtitle { color: var(--warm-gray); font-size: 0.83rem; font-weight: 300; margin-bottom: 36px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-    .form-label { display: block; font-size: 0.6rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--warm-gray); margin-bottom: 7px; }
+    .form-subtitle { color: var(--warm-gray); font-size: 0.82rem; font-weight: 300; margin-bottom: 30px; }
+
+    /* Two-column row for Name + Category */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    /* Full-width field wrapper */
+    .form-full { margin-bottom: 16px; }
+    /* Two-column row for Ingredients + Method textareas */
+    .form-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    /* Field label (e.g. "RECIPE NAME") */
+    .form-label {
+      display: block;
+      font-size: 0.58rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--warm-gray); margin-bottom: 6px;
+    }
+    /* Standard text input */
     .form-input, .form-textarea {
-      width: 100%; padding: 12px 15px; background: var(--cream); border: 1px solid var(--border);
-      border-radius: 9px; font-family: 'Cormorant Garamond', serif; font-size: 0.98rem;
-      color: var(--ink); outline: none; transition: border-color 0.18s; resize: vertical;
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.96rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.18s;
+      resize: vertical;
     }
     .form-input:focus, .form-textarea:focus { border-color: var(--rust); }
     .form-textarea { min-height: 200px; line-height: 1.7; }
-    .form-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-    .form-full { margin-bottom: 18px; }
-    .form-actions { display: flex; gap: 10px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
+
+    /* ── Image browse row ──
+       Contains: path text field + Browse button + hidden file input
+    ── */
+    .img-pick-wrap { display: flex; gap: 8px; align-items: center; }
+    .img-pick-wrap .form-input { flex: 1; font-family: 'Jost', sans-serif !important; font-size: 0.84rem !important; }
+    .btn-browse {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      background: var(--ink); color: #fff;
+      border: none; border-radius: 9px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.18s;
+      display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    }
+    .btn-browse:hover { background: var(--rust); }
+
+    /* Live image preview thumbnail shown after a file is chosen */
+    .img-preview-wrap {
+      position: relative;
+      margin-top: 10px;
+      display: inline-block;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .img-preview { display: block; max-height: 160px; max-width: 100%; object-fit: cover; }
+    /* ✕ button to clear the chosen image */
+    .img-clear-btn {
+      position: absolute; top: 7px; right: 7px;
+      width: 24px; height: 24px;
+      background: rgba(28,18,8,0.7); color: #fff;
+      border: none; border-radius: 50%;
+      font-size: 0.68rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .img-clear-btn:hover { background: var(--rust); }
+
+    /* Save / Cancel button row */
+    .form-actions {
+      display: flex; gap: 10px;
+      margin-top: 24px; padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
     .btn-save {
-      padding: 13px 32px; background: var(--ink); color: #fff; border: none; border-radius: 9px;
-      font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 2px;
-      text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+      padding: 12px 30px;
+      background: var(--ink); color: #fff;
+      border: none; border-radius: 9px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.18s;
     }
     .btn-save:hover { background: var(--rust); }
     .btn-cancel {
-      padding: 13px 22px; background: transparent; color: var(--warm-gray); border: 1px solid var(--border);
-      border-radius: 9px; font-family: 'Jost', sans-serif; font-size: 0.75rem; cursor: pointer; transition: all 0.18s;
+      padding: 12px 20px;
+      background: transparent; color: var(--warm-gray);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-family: 'Jost', sans-serif; font-size: 0.72rem;
+      cursor: pointer; transition: all 0.18s;
     }
     .btn-cancel:hover { border-color: var(--ink); color: var(--ink); }
 
+
+    /* ═══════════════════════════════════════════════════════════════
+       TOAST NOTIFICATION
+       Small pill that slides up from the bottom on save/error.
+       Controlled by showToast() in JavaScript.
+    ════════════════════════════════════════════════════════════════ */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: #fff;
+      padding: 10px 22px;
+      border-radius: 24px;
+      font-size: 0.78rem; font-weight: 400; letter-spacing: 0.5px;
+      opacity: 0; pointer-events: none;
+      transition: all 0.28s;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-left: 3px solid var(--sage); }
+    .toast.error   { border-left: 3px solid #e05252; }
+
+
+    /* ── Utility ── */
     .hidden { display: none !important; }
 
-    .detail { animation: slideIn 0.28s ease; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* ═══════════════════════════════════════════════════════════════
+       PRINT STYLES
+       When Ctrl+P or the Print button is used, hide the sidebar
+       and let the recipe expand to fill the page.
+    ════════════════════════════════════════════════════════════════ */
+    @media print {
+      .sidebar, .detail-actions, .mobile-toggle { display: none !important; }
+      .main { overflow: visible !important; height: auto !important; }
+      .detail { page-break-inside: avoid; }
+      .detail-body { grid-template-columns: 1fr 1fr; page-break-inside: avoid; }
+      .step { margin-bottom: 8px; page-break-inside: avoid; }
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+
+       860px — tablet landscape / small laptop:
+         • Ingredients + Method stack vertically (1 column)
+         • Form fields also stack to 1 column
+
+       700px — tablet portrait:
+         • Welcome stats & action tiles go to 2-column then 1-column
+         • Padding tightened
+
+       580px — phone:
+         • Sidebar hidden off-screen; ☰ toggle appears
+         • Form gets tighter padding
+         • Detail hero shrinks
+         • Action tiles stack to 1 column
+    ════════════════════════════════════════════════════════════════ */
     @media (max-width: 860px) {
+      /* Ingredients and Method stack vertically */
       .detail-body { grid-template-columns: 1fr; }
       .detail-ingredients { border-right: none; border-bottom: 1px solid var(--border); }
+      /* Form fields: Name/Category and Ingredients/Method each become full-width */
       .form-two-col, .form-grid { grid-template-columns: 1fr; }
     }
-    @media (max-width: 640px) {
-      .sidebar { width: 100%; min-width: 0; height: 50vh; }
-      .app { flex-direction: column; }
-      .form-view { padding: 24px 18px; }
+
+    @media (max-width: 700px) {
+      .welcome h2 { font-size: 2.4rem; }
+      .welcome-stats { grid-template-columns: repeat(3, 1fr); padding: 20px 20px 0; }
+      .welcome-actions { grid-template-columns: repeat(2, 1fr); padding: 16px 20px; }
+      .recent-section { padding: 0 20px 24px; }
     }
-    @media print {
-      .sidebar, .detail-actions { display: none; }
-      .main { overflow: visible; }
-      .detail-body { grid-template-columns: 1fr 1fr; }
+
+    @media (max-width: 580px) {
+      /* ── Sidebar slides off to the left; toggled by JS ── */
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0;
+        z-index: 100;
+        transform: translateX(-100%); /* hidden by default */
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+      /* .sidebar-open class is added by toggleSidebar() */
+      .sidebar.sidebar-open { transform: translateX(0); }
+
+      /* Show the ☰ hamburger button */
+      .mobile-toggle { display: flex; }
+
+      /* Main area fills the full screen width */
+      .main { width: 100%; }
+
+      .form-view { padding: 50px 18px 24px; }
+      .detail-hero { height: 200px; }
+      .detail-title { font-size: 1.8rem; }
+      .detail-hero-content { left: 16px; right: 16px; }
+
+      /* Stats: 3 cards stay in a row but shrink */
+      .welcome-stats { gap: 10px; }
+      .stat-num { font-size: 1.8rem; }
+
+      /* Action tiles: stack to single column on phones */
+      .welcome-actions { grid-template-columns: 1fr; }
+
+      /* Tighten hero padding */
+      .welcome-hero { padding: 44px 24px 36px; }
+      .quote-strip { padding: 10px 20px; }
     }
-	.welcome-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-top: 28px;
-  max-width: 500px;
-  width: 100%;
-}
 
-.action-card {
-  background: var(--cream);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  text-align: left;
-}
-
-.action-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--rust);
-}
-
-.action-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.2rem;
-  color: var(--ink);
-}
-
-.action-sub {
-  font-size: 0.7rem;
-  color: var(--warm-gray);
-  margin-top: 4px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
   </style>
 </head>
 <body>
+
+<!-- ☰ Mobile menu toggle (only visible on small screens) -->
+<button class="mobile-toggle" id="mobileToggle" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
+<!-- Dark overlay behind sidebar on mobile — clicking it closes the sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
 <div class="app">
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo-script" onclick="goHome()" style="cursor:pointer;">Kimberly's</div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Logo — clicking returns to the home/welcome screen -->
+    <div class="sidebar-header" onclick="goHome()">
+      <div class="logo-script">Kimberly's</div>
       <div class="logo-sub">Botanical Cookbook</div>
     </div>
+
+    <!-- Search input — triggers renderList() on every keystroke -->
     <div class="search-wrap">
-      <svg width="15" height="15" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg width="14" height="14" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
       <input class="search-input" id="search" placeholder="Search recipes…" oninput="renderList()">
     </div>
-    <div class="cats" id="catFilters"></div>
-    <div class="recipe-count" id="recipeCount"></div>
-    <div class="recipe-list" id="recipeList"></div>
-    <div class="sidebar-footer">
-     <div class="sidebar-footer">
-  <button class="btn-new" onclick="showAdd()">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    New Recipe
-  </button>
 
-  <button class="btn-new" style="margin-top:8px; background: var(--terracotta);" onclick="sortRecipesAZ()">
-    ⇅ Sort A → Z
-  </button>
-</div>
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <!-- Category filter pills — rendered by renderCats() -->
+    <div class="cats" id="catFilters"></div>
+
+    <!-- Recipe count (e.g. "42 recipes") -->
+    <div class="recipe-count" id="recipeCount"></div>
+
+    <!-- Scrollable list of recipes — rendered by renderList() -->
+    <div class="recipe-list" id="recipeList"></div>
+
+    <!-- Footer buttons -->
+    <div class="sidebar-footer">
+      <button class="btn-new" onclick="showAdd()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
         New Recipe
       </button>
+      <!-- Sort button — calls sortRecipesAZ() defined in JS -->
+      <button class="btn-new btn-sort" onclick="sortRecipesAZ()">⇅ Sort A → Z</button>
     </div>
-  </aside>
 
+  </aside><!-- /sidebar -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════════════════════ -->
   <main class="main" id="main">
-    <div class="welcome" id="welcome">
-      <div class="welcome-ornament">🌿</div>
-      <h2>Hello, <em>Kimberly</em></h2>
-      <p>Your personal garden of flavours — select a recipe to begin.</p>
-<div class="welcome-grid" id="welcomeStats"></div>
-<div class="welcome-actions" id="welcomeActions"></div>
-    </div>
 
+    <!-- ── WELCOME SCREEN ───────────────────────────────────── -->
+    <div class="welcome" id="welcome">
+
+      <!-- Hero banner with greeting -->
+      <div class="welcome-hero">
+        <div class="welcome-hero-inner">
+          <span class="welcome-ornament">🌿</span>
+          <h2>Hello, <em>Kimberly</em></h2>
+          <p class="welcome-tagline">Your personal garden of flavours</p>
+        </div>
+      </div>
+
+      <!-- Rotating daily quote — quote text is set by renderQuote() in JS -->
+      <div class="quote-strip">
+        <div class="quote-text" id="quoteText"></div>
+        <div class="quote-attr" id="quoteAttr"></div>
+      </div>
+
+      <!-- Stat cards: Recipes / Categories / Chicken — rendered by renderStats() -->
+      <div class="welcome-stats" id="welcomeStats"></div>
+
+      <!-- Quick-action tiles — rendered by renderStats() -->
+      <div class="welcome-actions" id="welcomeActions"></div>
+
+      <!-- Recently added recipes row — rendered by renderRecent() -->
+      <div class="recent-section">
+        <div class="recent-label">Recently Added</div>
+        <div class="recent-chips" id="recentChips"></div>
+      </div>
+
+    </div><!-- /welcome -->
+
+
+    <!-- ── RECIPE DETAIL VIEW ────────────────────────────────── -->
+    <!-- Hidden until a recipe is selected (showDetail is called) -->
     <div class="detail hidden" id="detailView">
+
+      <!-- Hero banner: image or emoji + title + action buttons -->
       <div class="detail-hero">
         <div class="detail-hero-bg" id="heroEmoji">🍽️</div>
         <div class="detail-hero-overlay"></div>
@@ -304,74 +953,203 @@ align-items: center;
             <div class="detail-title" id="detTitle"></div>
           </div>
           <div class="detail-actions">
+            <!-- Print: uses browser print dialog, sidebar hidden via @media print -->
             <button class="action-btn" onclick="window.print()">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
               Print
             </button>
+            <!-- Edit: calls editRecipe(i) — i is set when detail is opened -->
             <button class="action-btn" id="btnEdit">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
               Edit
             </button>
+            <!-- Delete: calls deleteRecipe(i) with a confirmation prompt -->
             <button class="action-btn danger" id="btnDelete">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              </svg>
               Delete
             </button>
           </div>
         </div>
       </div>
+
+      <!-- Ingredients | Method two-column body -->
       <div class="detail-body">
         <div class="detail-ingredients">
           <div class="section-label">Ingredients</div>
+          <!-- Filled by showDetail() using r.ing -->
           <div class="ingredients-text" id="detIng"></div>
         </div>
         <div class="detail-method">
           <div class="section-label">Method</div>
+          <!-- Filled by showDetail(); numbered steps get .step divs, freeform gets .raw-steps -->
           <div id="detSteps"></div>
         </div>
       </div>
-    </div>
 
+    </div><!-- /detailView -->
+
+
+    <!-- ── ADD / EDIT FORM ───────────────────────────────────── -->
+    <!-- Hidden until showAdd() or editRecipe() is called -->
     <div class="form-view hidden" id="formView">
+
+      <!-- Title changes between "New Creation" and "Edit Recipe" -->
       <div class="form-title" id="formTitle">New <em>Creation</em></div>
-      <p class="form-subtitle">Add a new recipe to your collection.</p>
+      <p class="form-subtitle" id="formSubtitle">Add a new recipe to your collection.</p>
+
+      <!-- Row 1: Recipe name + Category -->
       <div class="form-grid">
-        <div><label class="form-label">Recipe Name</label><input class="form-input" id="f_name" type="text" placeholder="Rosewater Cupcakes…"></div>
-        <div><label class="form-label">Category</label><input class="form-input" id="f_cat" type="text" placeholder="Dessert, Chicken, Beef…"></div>
+        <div>
+          <label class="form-label">Recipe Name</label>
+          <input class="form-input" id="f_name" type="text" placeholder="Rosewater Cupcakes…">
+        </div>
+        <div>
+          <label class="form-label">Category</label>
+          <input class="form-input" id="f_cat" type="text" placeholder="Dessert, Chicken, Beef…">
+        </div>
       </div>
-      <div class="form-full"><label class="form-label">Image URL (optional)</label><div class="form-full">
-  <label class="form-label">Image</label>
 
-  <input class="form-input" id="f_img" type="text" placeholder="Image URL or selected image">
+      <!-- Image field with Browse button -->
+      <div class="form-full">
+        <label class="form-label">Photo (optional)</label>
+        <div class="img-pick-wrap">
+          <!-- Text field: user can type a path like images/dish.jpg, or use Browse -->
+          <input class="form-input" id="f_img" type="text"
+                 placeholder="images/my-dish.jpg  or click Browse…"
+                 oninput="previewImg(this.value)">
+          <!-- Browse button opens the hidden file input below -->
+          <button class="btn-browse" type="button" onclick="document.getElementById('f_img_file').click()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Browse
+          </button>
+          <!-- Hidden file input — accepts images only; handled by handleImgFile() -->
+          <input type="file" id="f_img_file" accept="image/*" style="display:none"
+                 onchange="handleImgFile(this)">
+        </div>
+        <!-- Preview thumbnail appears here after a file is picked -->
+        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
+          <img id="imgPreview" src="" alt="Preview" class="img-preview">
+          <button class="img-clear-btn" type="button" onclick="clearImg()" title="Remove image">✕</button>
+        </div>
+      </div>
 
-  <button type="button" id="imgBtn" class="btn-cancel" style="margin-top:8px;">
-    Choose Image
-  </button>
-
-  <input type="file" id="f_img_file" accept="image/*" style="display:none;">
-</div></div>
+      <!-- Row 2: Ingredients | Method textareas -->
       <div class="form-two-col">
-        <div><label class="form-label">Ingredients</label><textarea class="form-textarea" id="f_ing" placeholder="One ingredient per line…"></textarea></div>
-        <div><label class="form-label">Method / Steps</label><textarea class="form-textarea" id="f_steps" placeholder="Step-by-step instructions…"></textarea></div>
+        <div>
+          <label class="form-label">Ingredients</label>
+          <textarea class="form-textarea" id="f_ing" placeholder="One ingredient per line…"></textarea>
+        </div>
+        <div>
+          <label class="form-label">Method / Steps</label>
+          <textarea class="form-textarea" id="f_steps" placeholder="1. Step one&#10;2. Step two…"></textarea>
+        </div>
       </div>
+
+      <!-- Save and Cancel -->
       <div class="form-actions">
         <button class="btn-save" onclick="saveRecipe()">Save Recipe</button>
         <button class="btn-cancel" onclick="hideForm()">Cancel</button>
       </div>
-    </div>
-  </main>
-</div>
 
+    </div><!-- /formView -->
+
+  </main><!-- /main -->
+</div><!-- /app -->
+
+<!-- Toast notification (shown briefly on save/error) -->
+<div class="toast" id="toast"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════ -->
 <script>
+
+/* ─────────────────────────────────────────────────────────────────
+   CATEGORY EMOJI MAP
+   Maps category names to an emoji shown in the sidebar list and
+   on the recipe hero when no photo is available.
+   To add a new category, add a line: 'YourCategory': '🍽️'
+───────────────────────────────────────────────────────────────── */
 const ICONS = {
-  'Cakes':'🎂','Breads':'🍞','Chicken':'🍗','Beef':'🥩','Pork':'🐷',
-  'Turkey':'🦃','Pasta':'🍝','Rice':'🍚','Cookies':'🍪','Pie':'🥧',
-  'Meatballs':'🍖','Pancakes':'🥞','Christmas':'🎄','Fries':'🍟',
-  'Chili':'🌶️','Potatoes':'🥔','Hot Dogs':'🌭','Imported':'📋',
-  'default':'🍽️'
+  'Cakes':    '🎂',
+  'Breads':   '🍞',
+  'Chicken':  '🍗',
+  'Beef':     '🥩',
+  'Pork':     '🐷',
+  'Turkey':   '🦃',
+  'Pasta':    '🍝',
+  'Rice':     '🍚',
+  'Cookies':  '🍪',
+  'Pie':      '🥧',
+  'Meatballs':'🍖',
+  'Pancakes': '🥞',
+  'Christmas':'🎄',
+  'Fries':    '🍟',
+  'Chili':    '🌶️',
+  'Potatoes': '🥔',
+  'Hot Dogs': '🌭',
+  'Imported': '📋',
+  'default':  '🍽️'
 };
+function icon(cat) { return ICONS[cat] || ICONS.default; }
 
-function icon(cat){ return ICONS[cat]||ICONS.default; }
 
+/* ─────────────────────────────────────────────────────────────────
+   DAILY QUOTES
+   One quote is picked based on the day of the year so it changes
+   every day but stays the same all day.
+   To add more quotes: just push another { text, author } object.
+───────────────────────────────────────────────────────────────── */
+const QUOTES = [
+  { text: "Cooking is love made visible.", author: "Anonymous" },
+  { text: "One cannot think well, love well, sleep well, if one has not dined well.", author: "Virginia Woolf" },
+  { text: "The secret ingredient is always love.", author: "Anonymous" },
+  { text: "Food is our common ground, a universal experience.", author: "James Beard" },
+  { text: "Cooking is at once child's play and adult joy.", author: "Craig Claiborne" },
+  { text: "A recipe has no soul. You, as the cook, must bring soul to the recipe.", author: "Thomas Keller" },
+  { text: "Life is uncertain. Eat dessert first.", author: "Ernestine Ulmer" },
+  { text: "Cooking is like painting or writing a song — just as few ingredients can come together to create something magnificent.", author: "Ina Garten" },
+  { text: "The kitchen is where memories are made.", author: "Anonymous" },
+  { text: "People who love to eat are always the best people.", author: "Julia Child" },
+  { text: "First we eat, then we do everything else.", author: "M.F.K. Fisher" },
+  { text: "Laughter is brightest in the place where the food is.", author: "Irish Proverb" }
+];
+
+function renderQuote() {
+  /* Pick a quote based on day-of-year so it rotates daily */
+  const day = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const q = QUOTES[day % QUOTES.length];
+  document.getElementById('quoteText').textContent = `"${q.text}"`;
+  document.getElementById('quoteAttr').textContent = `— ${q.author}`;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────
+   RECIPE DATA
+   Each recipe is an object with these fields:
+     name  — display name (also used as the image filename base)
+     cat   — category (must match a key in ICONS for the right emoji)
+     img   — relative path to image, e.g. "images/Banana Bread.jpg"
+             Leave as "" to show the category emoji instead.
+     ing   — ingredients as a plain text string (line breaks preserved)
+     steps — method as a plain text string; lines starting "1." etc.
+             get parsed into numbered step bubbles automatically.
+───────────────────────────────────────────────────────────────── */
 let recipes = [
 {name:"Chocolate Cake",cat:"Cakes",img:"",ing:"CHOCOLATE CAKE\n(1 cake)\nCake:\n1 Cup Flour\n1 Cup Granulated Sugar\n1/2 Cup Unsweetened Cocoa Powder\n3/4 tsp. Baking Powder\n3/4 tsp. Baking Soda\n1/2 tsp. Salt\n1 Egg\n1/2 Cup Milk\n1/4 Cup Vegetable Oil\n2 tsp. Vanilla Extract\n1/2 Cup Warm Water\n\nFrosting:\n1/2 Cup Milk Chocolate Chips\n1/4 Cup Sour Cream\n1/4 tsp. Vanilla Extract",steps:"1.\nPreheat oven to 350F. Grease or line a glass casserole dish with parchment paper.\n2.\nAdd flour, sugar, cocoa powder, baking powder, baking soda and salt to stand mixer bowl and whisk at low speed.\n3.\nAdd in the egg, milk, oil and vanilla extract. Mix on low until incorporated, then increase speed and mix 2 minutes.\n4.\nAdd warm water and gently stir. The batter will be very thin.\n5.\nPour into the casserole dish and bake 35-40 minutes, or until a toothpick comes out clean.\n6.\nCool 10 minutes in pan, then remove and continue cooling on a rack until room temperature.\nFrosting: Heat chocolate chips in the microwave at 50% power in 30 second increments, stirring after each, until fully melted. Add sour cream and vanilla and stir until fluffy. Spread over cooled cake."},
 {name:"Banana Bread",cat:"Breads",img:"",ing:"BANANA BREAD (1 loaf)\n2 Cups Flour\n1 tsp. Baking Soda\n1/4 tsp. Salt\n1/2 tsp. Cinnamon\n1 Egg\n1-1/8 Cups Sugar\n1/2 Cup Vegetable Oil\n2 Tbsp. Buttermilk*\n1 tsp. Vanilla Extract\n3 extra ripe Bananas, mashed\n\n*If no buttermilk: mix 1-3/4 Tbsp milk with 1/4 Tbsp lemon juice",steps:"1.\nPreheat oven to 325F. Line a loaf pan with parchment paper.\n2.\nIn a large bowl, whisk together flour, baking soda, salt and cinnamon.\n3.\nIn a small bowl, mix egg, sugar and vegetable oil until combined.\n4.\nMix the flour mixture and egg mixture together. It will be dry and thick.\n5.\nAdd buttermilk, vanilla and bananas and mix until combined. Pour into loaf pan.\n6.\nBake on the center rack for 75-80 minutes or until a knife comes out clean."},
@@ -420,27 +1198,87 @@ let recipes = [
 {name:"Air Fryer Hot Dogs",cat:"Hot Dogs",img:"",ing:"AIR FRYER HOT DOGS (2 servings)\n4-6 Hot Dogs\n4-6 Hot Dog Buns",steps:"1.\nSlice hot dogs in a spiral. Place 2-3 in each air fryer basket.\n2.\nCook at 400F for 6 minutes.\n3.\nPlace hot dogs in buns. Put in air fryer and cook at 400F for 2 minutes to lightly toast the buns.\n4.\nServe with favourite toppings."}
 ];
 
-// Merge localStorage
+
+/* ─────────────────────────────────────────────────────────────────
+   LOCAL STORAGE
+   Recipes are saved to the browser's localStorage under the key 'k_v4'.
+   On load, any saved data replaces the built-in recipe array so that
+   added/edited/deleted recipes persist between sessions.
+
+   NOTE: localStorage is per-browser-profile. If you switch browsers
+   your saved additions won't carry over. The built-in recipes above
+   are always the fallback if no saved data exists.
+───────────────────────────────────────────────────────────────── */
 try {
-  const saved = localStorage.getItem('k_v3');
-  if (saved) {
-    recipes = JSON.parse(saved);
-  }
-} catch (e) {}
+  const saved = localStorage.getItem('k_v4');
+  if (saved) recipes = JSON.parse(saved);
+} catch(e) {}
 
-let editIdx = null;
-let activeFilter = 'All';
+function save() { localStorage.setItem('k_v4', JSON.stringify(recipes)); }
 
-function save() {
-  localStorage.setItem('k_v3', JSON.stringify(recipes));
-}
+
+/* ─────────────────────────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────────────────────────── */
+let editIdx = null;      /* index of the recipe currently being viewed/edited */
+let activeFilter = 'All'; /* currently selected category pill */
+
+
+/* ─────────────────────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────────────────────── */
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
+
+/* ─────────────────────────────────────────────────────────────────
+   TOAST NOTIFICATION
+   showToast('message') or showToast('message', 'error')
+   The toast auto-disappears after ~2.6 seconds.
+───────────────────────────────────────────────────────────────── */
+let _toastTimer;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'success' ? '✓  ' : '✕  ') + msg;
+  el.className = 'toast ' + type + ' show';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────
+   MOBILE SIDEBAR TOGGLE
+   Adds/removes .sidebar-open on the sidebar and shows/hides overlay.
+   Called by the ☰ button and by clicking the overlay.
+───────────────────────────────────────────────────────────────── */
+function toggleSidebar() {
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('sidebarOverlay');
+  const btn = document.getElementById('mobileToggle');
+  const open = sb.classList.toggle('sidebar-open');
+  ov.classList.toggle('visible', open);
+  btn.textContent = open ? '✕' : '☰';
+}
+
+/* Close sidebar after picking a recipe on mobile */
+function closeSidebarIfMobile() {
+  if (window.innerWidth <= 580) {
+    const sb = document.getElementById('sidebar');
+    if (sb.classList.contains('sidebar-open')) toggleSidebar();
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────
+   CATEGORY & LIST RENDERING
+───────────────────────────────────────────────────────────────── */
+
+/* Returns ['All', ...sorted unique categories] */
 function getCategories() {
   return ['All', ...[...new Set(recipes.map(r => r.cat))].sort()];
 }
 
+/* Returns recipes matching the current search term and category filter */
 function getFiltered() {
   const term = document.getElementById('search').value.toLowerCase();
   return recipes.filter(r =>
@@ -449,6 +1287,7 @@ function getFiltered() {
   );
 }
 
+/* Renders the category pill buttons above the recipe list */
 function renderCats() {
   const el = document.getElementById('catFilters');
   el.innerHTML = '';
@@ -461,6 +1300,7 @@ function renderCats() {
   });
 }
 
+/* Renders the scrollable recipe list in the sidebar */
 function renderList() {
   const el = document.getElementById('recipeList');
   const filtered = getFiltered();
@@ -472,7 +1312,9 @@ function renderList() {
     const i = recipes.indexOf(r);
     const div = document.createElement('div');
     div.className = 'recipe-item' + (i === editIdx ? ' active' : '');
-	div.draggable = true;
+
+    /* Drag-and-drop reordering: drag a row up/down to change order */
+    div.draggable = true;
     div.dataset.index = i;
     div.innerHTML = `
       <div class="item-icon">${icon(r.cat)}</div>
@@ -480,90 +1322,264 @@ function renderList() {
         <div class="item-name">${r.name}</div>
         <div class="item-cat">${r.cat}</div>
       </div>`;
-    div.onclick = () => showDetail(i);
-	div.addEventListener('dragstart', (e) => {
-  e.dataTransfer.setData('text/plain', i);
-});
 
-div.addEventListener('dragover', (e) => {
-  e.preventDefault();
-});
+    div.onclick = () => { showDetail(i); closeSidebarIfMobile(); };
 
-div.addEventListener('drop', (e) => {
-  e.preventDefault();
+    /* Drag events for reordering */
+    div.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', i));
+    div.addEventListener('dragover',  e => e.preventDefault());
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to   = i;
+      if (from === to) return;
+      const moved = recipes.splice(from, 1)[0];
+      recipes.splice(to, 0, moved);
+      save(); renderList(); renderCats(); renderStats();
+    });
 
-  const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-  const toIndex = i;
-
-  if (fromIndex === toIndex) return;
-
-  const moved = recipes.splice(fromIndex, 1)[0];
-  recipes.splice(toIndex, 0, moved);
-
-  save();
-  renderList();
-  renderCats();
-  renderStats();
-});
     el.appendChild(div);
   });
 }
 
+
+/* ─────────────────────────────────────────────────────────────────
+   WELCOME SCREEN RENDERING
+   Called once on startup and again whenever the recipe list changes.
+───────────────────────────────────────────────────────────────── */
 function renderStats() {
+  /* ── Stat cards ── */
+  const cats = [...new Set(recipes.map(r => r.cat))];
+  const chickenCount = recipes.filter(r => r.cat === 'Chicken').length;
+  document.getElementById('welcomeStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-num">${recipes.length}</div>
+      <div class="stat-label">Recipes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${cats.length}</div>
+      <div class="stat-label">Categories</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${chickenCount}</div>
+      <div class="stat-label">Chicken</div>
+    </div>`;
+
+  /* ── Quick-action tiles ── */
   document.getElementById('welcomeActions').innerHTML = `
-    
     <div class="action-card" onclick="showAdd()">
+      <span class="action-icon">✏️</span>
       <div class="action-title">New Recipe</div>
       <div class="action-sub">Create something fresh</div>
     </div>
-
-    <div class="action-card" onclick="activeFilter='All'; renderCats(); renderList(); show('welcome'); hide('detailView');">
+    <div class="action-card" onclick="activeFilter='All'; renderCats(); renderList(); goHome()">
+      <span class="action-icon">📖</span>
       <div class="action-title">Browse All</div>
       <div class="action-sub">View full collection</div>
     </div>
-
     <div class="action-card" onclick="document.getElementById('search').focus()">
+      <span class="action-icon">🔍</span>
       <div class="action-title">Search</div>
-      <div class="action-sub">Find ingredients or recipes</div>
+      <div class="action-sub">Find by name or ingredient</div>
     </div>
-
     <div class="action-card" onclick="if(recipes.length) showDetail(recipes.length - 1)">
+      <span class="action-icon">🕐</span>
       <div class="action-title">Latest</div>
-      <div class="action-sub">Recently added recipe</div>
-    </div>
-
-  `;
-}
-function resolveImage(name) {
-  const base = "images/" + name;
-
-  const extensions = [".jpg", ".jpeg", ".png", ".webp"];
-
-  // return first possible path (browser will fail silently if missing)
-  return base + extensions[0]; 
+      <div class="action-sub">Most recently added</div>
+    </div>`;
 }
 
+/* Renders the "Recently Added" chips — shows the last 5 recipes */
+function renderRecent() {
+  const chips = document.getElementById('recentChips');
+  const recent = [...recipes].slice(-5).reverse(); /* last 5, newest first */
+  chips.innerHTML = '';
+  recent.forEach(r => {
+    const idx = recipes.indexOf(r);
+    const chip = document.createElement('div');
+    chip.className = 'recent-chip';
+    chip.textContent = icon(r.cat) + ' ' + r.name;
+    chip.onclick = () => showDetail(idx);
+    chips.appendChild(chip);
+  });
+}
+
+/* Picks and renders today's rotating quote */
+function renderQuote() {
+  const day = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const q = QUOTES[day % QUOTES.length];
+  document.getElementById('quoteText').textContent = `"${q.text}"`;
+  document.getElementById('quoteAttr').textContent = `— ${q.author}`;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────
+   IMAGE HELPERS
+   setHeroImage: tries to load images/<recipe name>.<ext> in sequence.
+   If none loads, falls back to the category emoji.
+───────────────────────────────────────────────────────────────── */
+
+/* Tries image extensions in order: .jpg → .jpeg → .png → .webp */
+function setHeroImage(r, hero) {
+  /* If the recipe has an explicit img path saved, use that first */
+  if (r.img && r.img.trim()) {
+    const img = new Image();
+    img.src = r.img;
+    img.onload = () => {
+      hero.style.backgroundImage = `url('${r.img}')`;
+      hero.style.backgroundSize  = 'cover';
+      hero.style.backgroundPosition = 'center';
+      hero.textContent = '';
+    };
+    img.onerror = () => tryByName(r, hero); /* fallback: try by name */
+    return;
+  }
+  tryByName(r, hero);
+}
+
+function tryByName(r, hero) {
+  const name = r.name;
+
+  const candidates = [
+    name,
+    slugify(name),
+    name.toLowerCase(),
+    name.replace(/\s+/g, '-'),
+    name.replace(/\s+/g, '_'),
+    name.replace(/[^a-zA-Z0-9]/g, '')
+  ];
+
+  const exts = ['.jpg', '.jpeg', '.png', '.webp'];
+
+  let i = 0;
+  let c = 0;
+
+  function tryNext() {
+    if (c >= candidates.length) {
+      hero.style.backgroundImage = '';
+      hero.textContent = icon(r.cat);
+      return;
+    }
+
+    if (i >= exts.length) {
+      i = 0;
+      c++;
+      tryNext();
+      return;
+    }
+
+    const path = 'images/' + candidates[c] + exts[i];
+
+    const img = new Image();
+    img.src = path;
+
+    img.onload = () => {
+      hero.style.backgroundImage = `url("${path}")`;
+      hero.style.backgroundSize = 'cover';
+      hero.style.backgroundPosition = 'center';
+      hero.style.backgroundRepeat = 'no-repeat';
+      hero.textContent = '';
+    };
+
+    img.onerror = () => {
+      i++;
+      tryNext();
+    };
+  }
+
+  tryNext();
+}
+
+/* ── Form image browse helpers ── */
+
+/* Called when a file is picked via the Browse button.
+   Fills the text field with images/<filename> and shows a live preview. */
+function handleImgFile(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const blobUrl = URL.createObjectURL(file);
+  const pathField = document.getElementById('f_img');
+  pathField.value = 'images/' + file.name;
+  pathField._blobUrl = blobUrl; /* store blob url separately for preview */
+  showImgPreview(blobUrl);
+  input.value = ''; /* reset so same file can be re-picked */
+}
+
+/* Called as the user types in the image path field */
+function previewImg(val) {
+  const inp = document.getElementById('f_img');
+  if (!val || !val.trim()) { hideImgPreview(); return; }
+  showImgPreview(inp._blobUrl || val);
+}
+
+function showImgPreview(src) {
+  const wrap = document.getElementById('imgPreviewWrap');
+  const img  = document.getElementById('imgPreview');
+  img.src = src;
+  img.onerror = () => { wrap.style.display = 'none'; };
+  img.onload  = () => { wrap.style.display = 'inline-block'; };
+  if (img.complete && img.naturalWidth) wrap.style.display = 'inline-block';
+}
+
+function hideImgPreview() {
+  document.getElementById('imgPreviewWrap').style.display = 'none';
+  document.getElementById('imgPreview').src = '';
+}
+
+/* Clears the image field and preview */
+function clearImg() {
+  const inp = document.getElementById('f_img');
+  inp.value = '';
+  inp._blobUrl = null;
+  hideImgPreview();
+}
+
+
+/* ─────────────────────────────────────────────────────────────────
+   NAVIGATION FUNCTIONS
+───────────────────────────────────────────────────────────────── */
+
+/* Go to the home/welcome screen */
+function goHome() {
+  hide('detailView'); hide('formView'); show('welcome');
+  editIdx = null;
+  renderList(); /* un-highlights any active item */
+}
+
+/* Show the Add New Recipe form */
+function showAdd() {
+  editIdx = null;
+  hide('welcome'); hide('detailView'); show('formView');
+  document.getElementById('formTitle').innerHTML   = 'New <em>Creation</em>';
+  document.getElementById('formSubtitle').textContent = 'Add a new recipe to your collection.';
+  /* Clear all fields */
+  ['f_name','f_cat','f_img','f_ing','f_steps'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_img')._blobUrl = null;
+  hideImgPreview();
+  closeSidebarIfMobile();
+}
+
+/* Open a recipe in the detail/read view */
 function showDetail(i) {
   editIdx = i;
   const r = recipes[i];
   hide('welcome'); hide('formView'); show('detailView');
-  document.getElementById('detCat').textContent = r.cat;
+
+  document.getElementById('detCat').textContent   = r.cat;
   document.getElementById('detTitle').textContent = r.name;
-const hero = document.getElementById('heroEmoji');
+
+  /* Set hero image (tries file first, then emoji fallback) */
+  const hero = document.getElementById('heroEmoji');
+  hero.textContent = '';
+console.log("IMAGE DEBUG:", r.img, r.name);
 setHeroImage(r, hero);
 
-if (r.img && r.img.trim()) {
-  hero.style.backgroundImage = `url('${r.img}')`;
-  hero.style.backgroundSize = 'cover';
-  hero.style.backgroundPosition = 'center';
-  hero.textContent = '';
-} else {
-  hero.style.backgroundImage = '';
-  hero.textContent = icon(r.cat);
-}
+  /* Ingredients */
   document.getElementById('detIng').textContent = r.ing;
 
-  // Render steps
+  /* Method: parse numbered steps into styled bubbles */
   const stepsEl = document.getElementById('detSteps');
   const raw = r.steps || '';
   const hasNumbers = /^\d+\./m.test(raw);
@@ -572,7 +1588,10 @@ if (r.img && r.img.trim()) {
     let html = '';
     parts.forEach(part => {
       const m = part.match(/^(\d+)\.\s*([\s\S]*)/);
-      if (m) html += `<div class="step"><div class="step-num">${m[1]}</div><div class="step-text">${m[2].trim()}</div></div>`;
+      if (m) html += `<div class="step">
+                        <div class="step-num">${m[1]}</div>
+                        <div class="step-text">${m[2].trim()}</div>
+                      </div>`;
       else if (part.trim()) html += `<div class="raw-steps">${part.trim()}</div>`;
     });
     stepsEl.innerHTML = html || `<div class="raw-steps">${raw}</div>`;
@@ -580,136 +1599,101 @@ if (r.img && r.img.trim()) {
     stepsEl.innerHTML = `<div class="raw-steps">${raw}</div>`;
   }
 
-  document.getElementById('btnEdit').onclick = () => editRecipe(i);
+  /* Wire up Edit and Delete buttons */
+  document.getElementById('btnEdit').onclick   = () => editRecipe(i);
   document.getElementById('btnDelete').onclick = () => deleteRecipe(i);
-  renderList();
-}
-function setHeroImage(r, hero) {
-  const base = "images/" + r.name;
-  const exts = [".jpg", ".jpeg", ".png", ".webp"];
 
-  let i = 0;
-
-  function tryNext() {
-    if (i >= exts.length) {
-      hero.textContent = icon(r.cat);
-      return;
-    }
-
-    const img = new Image();
-    img.src = base + exts[i];
-
-    img.onload = () => {
-      hero.innerHTML = `<img src="${img.src}" style="width:100%;height:100%;object-fit:cover;">`;
-    };
-
-    img.onerror = () => {
-      i++;
-      tryNext();
-    };
-  }
-
-  tryNext();
-}
-function showAdd() {
-  editIdx = null;
-  hide('welcome'); hide('detailView'); show('formView');
-  document.getElementById('formTitle').innerHTML = 'New <em>Creation</em>';
-  ['f_name','f_cat','f_img','f_ing','f_steps'].forEach(id => document.getElementById(id).value = '');
+  renderList(); /* update active highlight in sidebar */
 }
 
+/* Open a recipe in the Edit form */
 function editRecipe(i) {
   const r = recipes[i];
   editIdx = i;
   hide('detailView'); show('formView');
-  document.getElementById('formTitle').innerHTML = 'Edit <em>Recipe</em>';
-  document.getElementById('f_name').value = r.name;
-  document.getElementById('f_cat').value = r.cat;
-  document.getElementById('f_img').value = r.img || '';
-  document.getElementById('f_ing').value = r.ing;
+  document.getElementById('formTitle').innerHTML      = 'Edit <em>Recipe</em>';
+  document.getElementById('formSubtitle').textContent = 'Make changes and save.';
+  document.getElementById('f_name').value  = r.name;
+  document.getElementById('f_cat').value   = r.cat;
+  document.getElementById('f_ing').value   = r.ing;
   document.getElementById('f_steps').value = r.steps;
+  /* Image field */
+  const imgInp = document.getElementById('f_img');
+imgInp.value = r.img && r.img.startsWith('images/') ? r.img : '';
+  imgInp._blobUrl = null;
+if (r.img && r.img.trim() && r.img.startsWith('images/')) {
+  showImgPreview(r.img);
+} else {
+  hideImgPreview();
+}
 }
 
+/* Save new or edited recipe */
 function saveRecipe() {
+  const imgInp = document.getElementById('f_img');
   const r = {
-    name: document.getElementById('f_name').value.trim(),
-    cat: document.getElementById('f_cat').value.trim() || 'Other',
-    img: document.getElementById('f_img').value.trim(),
-    ing: document.getElementById('f_ing').value,
+    name:  document.getElementById('f_name').value.trim(),
+    cat:   document.getElementById('f_cat').value.trim() || 'Other',
+    img:   imgInp.value.trim(),
+    ing:   document.getElementById('f_ing').value,
     steps: document.getElementById('f_steps').value
   };
-  if (!r.name) { alert('Please give your recipe a name.'); return; }
-  if (editIdx !== null) { recipes[editIdx] = r; }
-  else { recipes.push(r); editIdx = recipes.length - 1; }
-  save(); renderCats(); renderList(); renderStats(); showDetail(editIdx);
+  if (!r.name) { showToast('Please give your recipe a name.', 'error'); return; }
+  if (editIdx !== null) {
+    recipes[editIdx] = r;
+    showToast('Recipe updated!');
+  } else {
+    recipes.push(r);
+    editIdx = recipes.length - 1;
+    showToast('Recipe saved!');
+  }
+  save(); renderCats(); renderList(); renderStats(); renderRecent();
+  showDetail(editIdx);
 }
 
+/* Delete a recipe with a confirmation prompt */
 function deleteRecipe(i) {
   if (confirm('Remove "' + recipes[i].name + '" from your collection?')) {
-    recipes.splice(i, 1); editIdx = null;
-    save(); renderCats(); renderList(); renderStats();
+    recipes.splice(i, 1);
+    editIdx = null;
+    save(); renderCats(); renderList(); renderStats(); renderRecent();
     hide('detailView'); show('welcome');
+    showToast('Recipe removed.');
   }
 }
 
+/* Cancel the form and go back to where we came from */
 function hideForm() {
   hide('formView');
   if (editIdx !== null) showDetail(editIdx); else show('welcome');
 }
 
-renderCats(); renderList(); renderStats();
-document.getElementById('imgBtn').addEventListener('click', () => {
-  document.getElementById('f_img_file').click();
-});
-document.getElementById('f_img_file').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  // ONLY store filename
-  document.getElementById('f_img').value = "images/" + file.name;
-});
+/* Sort all recipes alphabetically A → Z and save */
 function sortRecipesAZ() {
   recipes.sort((a, b) => a.name.localeCompare(b.name));
-  save();
-  renderList();
-  renderCats();
-  renderStats();
+  save(); renderList(); renderCats(); renderStats(); renderRecent();
+  showToast('Sorted A → Z');
 }
-function goHome() {
-  hide('detailView');
-  hide('formView');
-  show('welcome');
-  editIdx = null;
+
+/* Makes your image system reliable, flexible, and impossible to “break again” without changing your folder structure */
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
-function trySetHeroImage(r) {
-  const hero = document.getElementById('heroEmoji');
+/* ─────────────────────────────────────────────────────────────────
+   INITIALISE
+   Run these on page load to populate everything.
+───────────────────────────────────────────────────────────────── */
+renderQuote();
+renderCats();
+renderList();
+renderStats();
+renderRecent();
 
-  const base = "images/" + r.name;
-  const extensions = [".jpg", ".jpeg", ".png", ".webp"];
-
-  let i = 0;
-
-  function tryNext() {
-    if (i >= extensions.length) {
-      hero.textContent = icon(r.cat);
-      return;
-    }
-
-    const img = new Image();
-    img.src = base + extensions[i];
-
-    img.onload = () => {
-      hero.innerHTML = `<img src="${img.src}" style="width:100%;height:100%;object-fit:cover;">`;
-    };
-
-    img.onerror = () => {
-      i++;
-      tryNext();
-    };
-  }
-
-  tryNext();
-}
 </script>
 </body>
 </html>
