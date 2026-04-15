@@ -846,7 +846,100 @@
       .welcome-hero { padding: 44px 24px 36px; }
       .quote-strip { padding: 10px 20px; }
     }
+/* ================================
+   SIDE RECIPE BUTTONS (detail view)
+   ================================ */
+.side-recipe-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 
+.side-recipe-btn:hover {
+  background: var(--cream);
+  border-color: var(--rust);
+  color: var(--rust);
+}
+
+/* ================================
+   SIDE SELECTOR PILLS (edit form)
+   ================================ */
+.side-select-pill {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.side-select-pill:hover {
+  border-color: var(--rust);
+  color: var(--rust);
+}
+
+.side-select-pill.active {
+  background: var(--rust);
+  color: #fff;
+  border-color: var(--rust);
+}
+#sideButtons .action-btn {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  backdrop-filter: none;
+}
+
+#sideButtons .action-btn:hover {
+  background: var(--cream);
+  color: var(--rust);
+  border-color: var(--rust);
+}
+/* ================================
+   SCALE BUTTONS (1x / 2x / 3x)
+================================ */
+
+#scaleControls button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+#scaleControls button:hover {
+  border-color: var(--rust);
+  color: var(--rust);
+  transform: scale(1.05);
+}
+
+#scaleControls button.active {
+  background: var(--rust);
+  color: #fff;
+  border-color: var(--rust);
+}
   </style>
 </head>
 <body>
@@ -898,7 +991,9 @@
       <button class="btn-new btn-sort" onclick="sortRecipesAZ()">⇅ Sort A → Z</button>
     </div>
 
-  </aside><!-- /sidebar -->
+  </aside>
+  
+<!-- /sidebar -->
 
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -950,7 +1045,21 @@
         <div class="detail-hero-content">
           <div>
             <div class="detail-cat-badge" id="detCat"></div>
-            <div class="detail-title" id="detTitle"></div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+  <div class="detail-title" id="detTitle"></div>
+
+  <div id="scaleControls" style="
+    display:flex;
+    gap:6px;
+    align-items:center;
+    font-family:'Jost', sans-serif;
+  ">
+    <button onclick="setScale(1)">1×</button>
+    <button onclick="setScale(2)">2×</button>
+    <button onclick="setScale(3)">3×</button>
+	<button onclick="setScale(4)">4×</button>
+  </div>
+</div>
           </div>
           <div class="detail-actions">
             <!-- Print: uses browser print dialog, sidebar hidden via @media print -->
@@ -993,6 +1102,7 @@
           <div class="section-label">Method</div>
           <!-- Filled by showDetail(); numbered steps get .step divs, freeform gets .raw-steps -->
           <div id="detSteps"></div>
+<div id="sideButtons" style="margin-top:20px;"></div>
         </div>
       </div>
 
@@ -1026,6 +1136,10 @@
       <!-- Image field with Browse button -->
       <div class="form-full">
         <label class="form-label">Photo (optional)</label>
+		<div class="form-full">
+  <label class="form-label">Sides</label>
+  <div id="sideSelector" class="cats"></div>
+</div>
         <div class="img-pick-wrap">
           <!-- Text field: user can type a path like images/dish.jpg, or use Browse -->
           <input class="form-input" id="f_img" type="text"
@@ -1077,6 +1191,45 @@
 <!-- Toast notification (shown briefly on save/error) -->
 <div class="toast" id="toast"></div>
 
+</div><!-- /app -->
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- SIDE MODAL -->
+<div id="sideModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  z-index:999;
+">
+
+  <div style="
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:min(600px,90%);
+    max-height:80vh;
+    overflow-y:auto;
+    background:#faf6f0;
+    border-radius:14px;
+    padding:20px;
+  ">
+
+    <button onclick="closeSideModal()" style="
+      float:right;
+      background:none;
+      border:none;
+      font-size:18px;
+      cursor:pointer;
+    ">✕</button>
+
+    <div id="sideModalBody"></div>
+
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════
      JAVASCRIPT
@@ -1225,8 +1378,10 @@ function save() { localStorage.setItem('k_v4', JSON.stringify(recipes)); }
    STATE
 ───────────────────────────────────────────────────────────────── */
 let editIdx = null;      /* index of the recipe currently being viewed/edited */
+let recipeScale = 1;     /* this will allow us to scale the recipe */
+let activeScaleContext = 1;
 let activeFilter = 'All'; /* currently selected category pill */
-
+let selectedSides = []; /* currently selected side dishes */
 
 /* ─────────────────────────────────────────────────────────────────
    HELPERS
@@ -1324,7 +1479,55 @@ const ingredients = ingredientsList.join(' ');
     return matchesCategory && matchesInclude && matchesExclude;
   });
 }
+function renderSideSelector() {
+  const el = document.getElementById('sideSelector');
+  if (!el) return;
 
+  el.innerHTML = '';
+
+  recipes.forEach((r, i) => {
+    const cats = (Array.isArray(r.cat) ? r.cat : [r.cat])
+      .map(c => c.toLowerCase());
+
+    if (!cats.includes('side dishes')) return;
+
+    // Find if this side is already selected
+    let sideObj = selectedSides.find(s => s.idx === i);
+    if (!sideObj) sideObj = { idx: i, defaultScale: 1 };
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'side-wrapper';
+
+    const pill = document.createElement('button');
+    pill.className = 'side-select-pill' + (selectedSides.includes(sideObj) ? ' active' : '');
+    pill.textContent = (r.emoji || icon(r.cat)) + ' ' + r.name;
+
+    pill.onclick = () => {
+      const exists = selectedSides.find(s => s.idx === i);
+      if (exists) {
+        selectedSides = selectedSides.filter(s => s.idx !== i);
+      } else {
+        selectedSides.push(sideObj);
+      }
+      renderSideSelector();
+    };
+
+    const scaleInput = document.createElement('input');
+    scaleInput.type = 'number';
+    scaleInput.min = 1;
+    scaleInput.value = sideObj.defaultScale;
+    scaleInput.className = 'side-scale-input';
+    scaleInput.style.width = '40px';
+    scaleInput.style.marginLeft = '6px';
+    scaleInput.oninput = (e) => {
+      sideObj.defaultScale = Number(e.target.value) || 1;
+    };
+
+    wrapper.appendChild(pill);
+    wrapper.appendChild(scaleInput);
+    el.appendChild(wrapper);
+  });
+}
 /* Renders the category pill buttons above the recipe list */
 function renderCats() {
   const el = document.getElementById('catFilters');
@@ -1381,8 +1584,19 @@ function renderList() {
     el.appendChild(div);
   });
 }
-
-
+function updateScaleUI() {
+  document.querySelectorAll('#scaleControls button').forEach((btn, i) => {
+    btn.style.background = (i + 1 === recipeScale) ? 'var(--rust)' : '#fff';
+    btn.style.color = (i + 1 === recipeScale) ? '#fff' : 'var(--ink)';
+  });
+}
+function setScale(val) {
+  recipeScale = val;
+  activeScaleContext = val;
+  const r = recipes[editIdx];
+  if (r) renderScaledIngredients(r);
+  updateScaleUI();
+}
 /* ─────────────────────────────────────────────────────────────────
    WELCOME SCREEN RENDERING
    Called once on startup and again whenever the recipe list changes.
@@ -1598,12 +1812,16 @@ function showAdd() {
   });
   document.getElementById('f_img')._blobUrl = null;
   hideImgPreview();
+selectedSides = [];
+renderSideSelector();
   closeSidebarIfMobile();
 }
 
 /* Open a recipe in the detail/read view */
 function showDetail(i) {
   editIdx = i;
+activeScaleContext = activeScaleContext || 1;
+recipeScale = activeScaleContext;
   const r = recipes[i];
   hide('welcome'); hide('formView'); show('detailView');
 
@@ -1618,7 +1836,7 @@ console.log("IMAGE DEBUG:", r.img, r.name);
 setHeroImage(r, hero);
 
   /* Ingredients */
-  document.getElementById('detIng').textContent = r.ing;
+  renderScaledIngredients(r);
 
   /* Method: parse numbered steps into styled bubbles */
   const stepsEl = document.getElementById('detSteps');
@@ -1645,8 +1863,67 @@ setHeroImage(r, hero);
   document.getElementById('btnDelete').onclick = () => deleteRecipe(i);
 
   renderList(); /* update active highlight in sidebar */
+  const sideWrap = document.getElementById('sideButtons');
+sideWrap.innerHTML = '';
+
+if (r.sides && r.sides.length) {
+  r.sides.forEach(sideObj => {
+    const s = recipes[sideObj.idx];
+    if (!s) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'action-btn side-btn';
+    btn.textContent = (s.emoji || icon(s.cat)) + ' ' + s.name;
+
+    btn.onclick = () => {
+      // Use the side's default multiplier if set, multiplied by current main recipe scale
+      const effectiveScale = (sideObj.defaultScale || 1) * (recipeScale || 1);
+      openSideModal(sideObj.idx, effectiveScale);
+    };
+
+    sideWrap.appendChild(btn);
+  });
 }
 
+renderList();
+}
+function renderSideInline(idx) {
+  const s = recipes[idx];
+  if (!s) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'side-inline-recipe';
+
+  const title = document.createElement('div');
+  title.className = 'side-inline-title';
+  title.textContent = (s.emoji || icon(s.cat)) + ' ' + s.name;
+
+  const ing = document.createElement('div');
+  ing.className = 'side-inline-ing';
+
+  const originalScale = recipeScale;
+
+  // temporarily apply main recipe scale
+  const prevScale = recipeScale;
+  activeScaleContext = activeScaleContext || 1;
+recipeScale = activeScaleContext;
+
+  // reuse your existing scaler
+  const temp = document.createElement('div');
+  temp.textContent = '';
+  renderScaledIngredients(s);
+
+  ing.textContent = document.getElementById('detIng').textContent;
+
+  // restore original (important)
+  recipeScale = prevScale;
+
+  wrap.appendChild(title);
+  wrap.appendChild(ing);
+
+  // inject into main detail view
+  document.getElementById('sidePreviewArea').appendChild(wrap);
+}
 /* Open a recipe in the Edit form */
 function editRecipe(i) {
   const r = recipes[i];
@@ -1659,6 +1936,11 @@ document.getElementById('f_cat').value =
   Array.isArray(r.cat) ? r.cat.join(', ') : r.cat;
   document.getElementById('f_ing').value   = r.ing;
   document.getElementById('f_steps').value = r.steps;
+selectedSides = (r.sides || []).map(s => {
+  if (typeof s === 'number') return { idx: s, defaultScale: 1 };
+  return s; // already an object with defaultScale
+});
+renderSideSelector();
   document.getElementById('f_emoji').value = r.emoji || '';
   /* Image field */
   const imgInp = document.getElementById('f_img');
@@ -1684,7 +1966,8 @@ const r = {
   img:   imgInp.value.trim(),
   ing:   document.getElementById('f_ing').value,
   steps: document.getElementById('f_steps').value,
-  emoji: document.getElementById('f_emoji')?.value || ''
+  emoji: document.getElementById('f_emoji')?.value || '',
+sides: selectedSides || []
 };
   if (!r.name) { showToast('Please give your recipe a name.', 'error'); return; }
   if (editIdx !== null) {
@@ -1724,6 +2007,88 @@ function sortRecipesAZ() {
 }
 
 /* Makes your image system reliable, flexible, and impossible to “break again” without changing your folder structure */
+function openSideModal(i, scale) {
+  const r = recipes[i];
+  const body = document.getElementById('sideModalBody');
+
+  // Scale the ingredients and steps if needed
+  const scaledIng = applyScaleToText(r.ing, scale);
+  const scaledSteps = applyScaleToText(r.steps, scale); // optional if you want scaling in steps
+
+  body.innerHTML = `
+    <h2 style="font-family:'Cormorant Garamond', serif;">${r.name}</h2>
+    <h4>Ingredients</h4>
+    <pre>${scaledIng}</pre>
+    <h4>Method</h4>
+    <pre>${scaledSteps}</pre>
+  `;
+
+  document.getElementById('sideModal').style.display = 'block';
+}
+function applyScaleToText(text, customScale) {
+  if (!text) return '';
+
+  // If the side recipe has its own multiplier, multiply it by the main recipe scale
+let scale = arguments[1] || recipeScale || 1; // optional scale passed as second argument
+
+// Check for embedded side multiplier
+const sideMatch = text.match(/^(\d+)\s*x\s+/i);
+if (sideMatch) {
+  scale *= Number(sideMatch[1]);
+  text = text.replace(/^(\d+)\s*x\s+/i, ''); // remove the leading "2x" from text
+}
+
+  const toNumber = (value) => {
+    value = value.trim();
+
+    if (value.includes('/')) {
+      const [n, d] = value.split('/').map(Number);
+      return n / d;
+    }
+
+return Number(value);
+  };
+
+  const toFraction = (num) => {
+    if (Number.isInteger(num)) return String(num);
+
+    const tolerance = 1e-6;
+    let h1 = 1, h2 = 0;
+    let k1 = 0, k2 = 1;
+    let b = num;
+
+    do {
+      const a = Math.floor(b);
+      let temp = h1;
+      h1 = a * h1 + h2;
+      h2 = temp;
+
+      temp = k1;
+      k1 = a * k1 + k2;
+      k2 = temp;
+
+      b = 1 / (b - a);
+    } while (Math.abs(num - h1 / k1) > tolerance);
+
+    return `${h1}/${k1}`;
+  };
+
+const scaleValue = (match) => {
+  const num = toNumber(match);
+
+  // Prevent double-scaling already marked multipliers like "2x"
+  const isExplicitMultiplier = /x\s*$/i.test(match) || /x\d+/i.test(match);
+  if (isExplicitMultiplier) return match;
+
+  return toFraction(num * scale);
+};
+
+/* Only match real ingredient numbers, NOT "2x", "3x", etc */
+return text.replace(/(\d+\s*\d*\/?\d*)(?!\s*x)/gi, scaleValue);
+}
+function closeSideModal() {
+  document.getElementById('sideModal').style.display = 'none';
+}
 function slugify(name) {
   return name
     .toLowerCase()
@@ -1731,6 +2096,82 @@ function slugify(name) {
     .replace(/&/g, 'and')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function renderScaledIngredients(r) {
+  const el = document.getElementById('detIng');
+
+  if (!r.ing) {
+    el.textContent = '';
+    return;
+  }
+
+  const toNumber = (value) => {
+    value = value.trim();
+
+    // mixed number: "1 1/2"
+    if (value.includes(' ') && value.includes('/')) {
+      const [whole, frac] = value.split(' ');
+      const [n, d] = frac.split('/').map(Number);
+      return Number(whole) + n / d;
+    }
+
+    // fraction: "1/2"
+    if (value.includes('/')) {
+      const [n, d] = value.split('/').map(Number);
+      return n / d;
+    }
+
+    return Number(value);
+  };
+
+  const toFraction = (num) => {
+    if (!isFinite(num)) return '';
+
+    const whole = Math.floor(num);
+    const decimal = num - whole;
+
+    if (Math.abs(decimal) < 1e-10) return String(whole);
+
+    // convert decimal → fraction
+    let h1 = 1, h2 = 0;
+    let k1 = 0, k2 = 1;
+    let b = decimal;
+
+    while (true) {
+      const a = Math.floor(b);
+
+      const tempH = h1;
+      h1 = a * h1 + h2;
+      h2 = tempH;
+
+      const tempK = k1;
+      k1 = a * k1 + k2;
+      k2 = tempK;
+
+      if (b - a === 0) break;
+      if (Math.abs(decimal - h1 / k1) < 1e-6) break;
+      if (k2 > 100) break;
+
+      b = 1 / (b - a);
+    }
+
+    if (h1 === 0) return String(whole);
+    if (whole > 0) return `${whole} ${h1}/${k1}`;
+    return `${h1}/${k1}`;
+  };
+
+  // IMPORTANT FIX: stricter matching (prevents breaking at 4x scale)
+  const scaled = r.ing.replace(
+    /\b\d+(?:\s+\d+\/\d+|\s*\/\d+)?\b/g,
+    (match) => {
+      const num = toNumber(match);
+      if (isNaN(num)) return match;
+      return toFraction(num * recipeScale);
+    }
+  );
+
+  el.textContent = scaled;
 }
 /* ─────────────────────────────────────────────────────────────────
    INITIALISE
