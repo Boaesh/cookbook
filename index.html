@@ -2085,7 +2085,7 @@ function openSideModal(i, scale) {
 
   // Scale the ingredients and steps if needed
   const scaledIng = applyScaleToText(r.ing, scale);
-  const scaledSteps = r.steps; // optional if you want scaling in steps
+  const scaledSteps = applyScaleToText(r.steps, scale); // optional if you want scaling in steps
 
   body.innerHTML = `
     <h2 style="font-family:'Cormorant Garamond', serif;">${r.name}</h2>
