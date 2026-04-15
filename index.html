@@ -1456,10 +1456,28 @@ function getFiltered() {
       activeFilter === 'All' || cats.includes(activeFilter);
 
     const name = r.name.toLowerCase();
-    const ingredientsList = (r.ing || '')
+// Start with main recipe ingredients
+let ingredientsList = (r.ing || '')
   .toLowerCase()
   .split(/\n|,/)
   .map(i => i.trim());
+
+// Include side dish ingredients if any
+if (r.sides && r.sides.length) {
+  r.sides.forEach(sideObj => {
+    const sideRecipe = recipes[sideObj.idx];
+    if (!sideRecipe) return;
+
+    // Apply the side's default multiplier (if set) times the main recipe scale
+    const effectiveScale = (sideObj.defaultScale || 1) * (recipeScale || 1);
+    const scaledSideIng = applyScaleToText(sideRecipe.ing, effectiveScale)
+      .toLowerCase()
+      .split(/\n|,/)
+      .map(i => i.trim());
+
+    ingredientsList = ingredientsList.concat(scaledSideIng);
+  });
+}
 
 const ingredients = ingredientsList.join(' ');
     const categoryText = cats.join(' ').toLowerCase();
