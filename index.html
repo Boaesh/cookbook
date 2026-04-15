@@ -1273,26 +1273,89 @@ function icon(cat) { return ICONS[cat] || ICONS.default; }
    To add more quotes: just push another { text, author } object.
 ───────────────────────────────────────────────────────────────── */
 const QUOTES = [
-  { text: "Cooking is love made visible.", author: "Anonymous" },
-  { text: "One cannot think well, love well, sleep well, if one has not dined well.", author: "Virginia Woolf" },
-  { text: "The secret ingredient is always love.", author: "Anonymous" },
-  { text: "Food is our common ground, a universal experience.", author: "James Beard" },
-  { text: "Cooking is at once child's play and adult joy.", author: "Craig Claiborne" },
-  { text: "A recipe has no soul. You, as the cook, must bring soul to the recipe.", author: "Thomas Keller" },
-  { text: "Life is uncertain. Eat dessert first.", author: "Ernestine Ulmer" },
-  { text: "Cooking is like painting or writing a song — just as few ingredients can come together to create something magnificent.", author: "Ina Garten" },
-  { text: "The kitchen is where memories are made.", author: "Anonymous" },
-  { text: "People who love to eat are always the best people.", author: "Julia Child" },
-  { text: "First we eat, then we do everything else.", author: "M.F.K. Fisher" },
-  { text: "Laughter is brightest in the place where the food is.", author: "Irish Proverb" }
+{ text: "Cooking is at once child's play and adult joy. And cooking done with care is an act of love.", author: "Craig Claiborne" },
+{ text: "Cooking is a love story. You need to fall in love with the ingredients and then with the people who cook them.", author: "Alain Ducasse" },
+{ text: "Real food doesn't have ingredients, real food is ingredients.", author: "Jamie Oliver" },
+{ text: "You don't need a silver fork to eat good food.", author: "Paul Prudhomme" },
+{ text: "You can't cook if you don't like people.", author: "Joël Robuchon" },
+{ text: "Always remember: If you're alone in the kitchen and you drop the lamb, you can always just pick it up.", author: "Julia Child" },
+{ text: "Cooking is love made visible.", author: "Anonymous" },
+{ text: "One cannot think well, love well, sleep well, if one has not dined well.", author: "Virginia Woolf" },
+{ text: "The secret ingredient is always love.", author: "Anonymous" },
+{ text: "Food is our common ground, a universal experience.", author: "James Beard" },
+{ text: "Cooking is at once child's play and adult joy.", author: "Craig Claiborne" },
+{ text: "A recipe has no soul. You, as the cook, must bring soul to the recipe.", author: "Thomas Keller" },
+{ text: "Life is uncertain. Eat dessert first.", author: "Ernestine Ulmer" },
+{ text: "Cooking is like painting or writing a song — just as few ingredients can come together to create something magnificent.", author: "Ina Garten" },
+{ text: "The kitchen is where memories are made.", author: "Anonymous" },
+{ text: "People who love to eat are always the best people.", author: "Julia Child" },
+{ text: "First we eat, then we do everything else.", author: "M.F.K. Fisher" },
+{ text: "Laughter is brightest in the place where the food is.", author: "Irish Proverb" },
+{ text: "People who love to eat are always the best people.", author: "Julia Child" },
+{ text: "You don’t have to cook fancy or complicated masterpieces—just good food from fresh ingredients.", author: "Julia Child" },
+{ text: "Your body is not a temple, it’s an amusement park. Enjoy the ride.", author: "Anthony Bourdain" },
+{ text: "Skills can be taught. Character you either have or you don’t have.", author: "Anthony Bourdain" },
+{ text: "It’s not about how many times you get knocked down, it’s about how many times you get back up.", author: "Gordon Ramsay" },
+{ text: "Cooking is about passion, so it may look slightly temperamental in a way that it’s too assertive to the naked eye.", author: "Gordon Ramsay" },
+{ text: "A recipe has no soul. You, as the cook, must bring soul to the recipe.", author: "Thomas Keller" },
+{ text: "A great restaurant is one that just makes you feel like you’re at home.", author: "Thomas Keller" },
+{ text: "Store-bought is fine.", author: "Ina Garten" },
+{ text: "Cooking is one failure after another, and that’s how you finally learn.", author: "Ina Garten" },
+{ text: "Food is our common ground, a universal experience.", author: "James Beard" },
+{ text: "I’m a great believer in eating well.", author: "James Beard" },
+{ text: "Cooking is not work; it is a passion and an art.", author: "Marco Pierre White" },
+{ text: "Perfection is lots of little things done well.", author: "Marco Pierre White" },
+{ text: "Good cuisine is the foundation of genuine happiness.", author: "Auguste Escoffier" },
+{ text: "First we eat, then we do everything else.", author: "M.F.K. Fisher" },
+{ text: "Sharing food with another human being is an intimate act.", author: "M.F.K. Fisher" },
+{ text: "Life is uncertain. Eat dessert first.", author: "Ernestine Ulmer" },
+{ text: "Cooking is at once child’s play and adult joy.", author: "Craig Claiborne" },
+{ text: "You have to enjoy what you’re cooking or it will show in the food.", author: "Wolfgang Puck" },
+{ text: "Food is not just fuel. It’s about sharing, caring, and love.", author: "José Andrés" },
+{ text: "Cooking is not about being a slave to recipes, it’s about confidence.", author: "Nigella Lawson" },
+{ text: "The kitchen is where memories are made.", author: "Anonymous" },
+{ text: "The secret ingredient is always love.", author: "Anonymous" },
+{ text: "Cooking is love made visible.", author: "Anonymous" },
+{ text: "Laughter is brightest in the place where the food is.", author: "Irish Proverb" },
+{ text: "The only real stumbling block is fear of failure. In cooking you’ve got to have a what-the-hell attitude.", author: "Julia Child" },
+{ text: "No one is born a great cook; one learns by doing.", author: "Julia Child" },
+{ text: "Travel changes you. As you move through this life… you leave marks behind, however small.", author: "Anthony Bourdain" },
+{ text: "Good food is very often, even most often, simple food.", author: "Anthony Bourdain" },
+{ text: "A kitchen that is too clean is a kitchen that isn’t being used.", author: "Gordon Ramsay" },
+{ text: "If you want to become a great chef, you have to work with great chefs.", author: "Gordon Ramsay" },
+{ text: "Details make the difference between good food and great food.", author: "Thomas Keller" },
+{ text: "A mistake is simply another way of doing things.", author: "Thomas Keller" },
+{ text: "Don’t forget to taste as you cook.", author: "Ina Garten" },
+{ text: "There’s nothing more important than a good, safe, secure home.", author: "Ina Garten" },
+{ text: "Cooking well doesn’t mean cooking fancy.", author: "James Beard" },
+{ text: "Food is our common bond.", author: "James Beard" },
+{ text: "A good cook is like a sorceress who dispenses happiness.", author: "Elsa Schiaparelli" },
+{ text: "Cooking is like love. It should be entered into with abandon or not at all.", author: "Harriet Van Horne" },
+{ text: "The discovery of a new dish does more for human happiness than the discovery of a star.", author: "Jean Anthelme Brillat-Savarin" },
+{ text: "Tell me what you eat, and I will tell you what you are.", author: "Jean Anthelme Brillat-Savarin" },
+{ text: "Cooking is an observation-based process that you can’t do if you’re so completely focused on a recipe.", author: "Alton Brown" },
+{ text: "Recipes are not laws, they are guidelines.", author: "Alton Brown" },
+{ text: "Great cooking is about being inspired by the simple things around you.", author: "Gordon Ramsay" },
+{ text: "Food is the ingredient that binds us together.", author: "Unknown Chef Saying" },
+{ text: "A meal without wine is like a day without sunshine.", author: "Anthelme Brillat-Savarin" }
 ];
 
-function renderQuote() {
-  /* Pick a quote based on day-of-year so it rotates daily */
-  const day = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-  const q = QUOTES[day % QUOTES.length];
-  document.getElementById('quoteText').textContent = `"${q.text}"`;
-  document.getElementById('quoteAttr').textContent = `— ${q.author}`;
+function startQuoteScheduler() {
+  renderQuote(); // run immediately
+
+  const now = new Date();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+  const ms = now.getMilliseconds();
+
+  // Time until next multiple of 5 minutes
+  const minsToNext = 5 - (minutes % 5);
+  const delay = (minsToNext * 60 - seconds) * 1000 - ms;
+
+  setTimeout(() => {
+    renderQuote(); // run exactly on :00, :05, :10, etc.
+    setInterval(renderQuote, 5 * 60 * 1000); // every 5 mins after
+  }, delay);
 }
 
 
@@ -1644,16 +1707,6 @@ function renderStats() {
       <div class="action-title">New Recipe</div>
       <div class="action-sub">Create something fresh</div>
     </div>
-    <div class="action-card" onclick="activeFilter='All'; renderCats(); renderList(); goHome()">
-      <span class="action-icon">📖</span>
-      <div class="action-title">Browse All</div>
-      <div class="action-sub">View full collection</div>
-    </div>
-    <div class="action-card" onclick="document.getElementById('search').focus()">
-      <span class="action-icon">🔍</span>
-      <div class="action-title">Search</div>
-      <div class="action-sub">Find by name or ingredient</div>
-    </div>
     <div class="action-card" onclick="if(recipes.length) showDetail(recipes.length - 1)">
       <span class="action-icon">🕐</span>
       <div class="action-title">Latest</div>
@@ -1678,8 +1731,9 @@ function renderRecent() {
 
 /* Picks and renders today's rotating quote */
 function renderQuote() {
-  const day = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-  const q = QUOTES[day % QUOTES.length];
+  const interval = Math.floor(Date.now() / (5 * 60 * 1000));
+  const q = QUOTES[interval % QUOTES.length];
+
   document.getElementById('quoteText').textContent = `"${q.text}"`;
   document.getElementById('quoteAttr').textContent = `— ${q.author}`;
 }
@@ -2031,7 +2085,7 @@ function openSideModal(i, scale) {
 
   // Scale the ingredients and steps if needed
   const scaledIng = applyScaleToText(r.ing, scale);
-  const scaledSteps = applyScaleToText(r.steps, scale); // optional if you want scaling in steps
+  const scaledSteps = r.steps; // optional if you want scaling in steps
 
   body.innerHTML = `
     <h2 style="font-family:'Cormorant Garamond', serif;">${r.name}</h2>
@@ -2195,12 +2249,11 @@ function renderScaledIngredients(r) {
    INITIALISE
    Run these on page load to populate everything.
 ───────────────────────────────────────────────────────────────── */
-renderQuote();
 renderCats();
 renderList();
 renderStats();
 renderRecent();
-
+startQuoteScheduler();
 </script>
 </body>
 </html>
